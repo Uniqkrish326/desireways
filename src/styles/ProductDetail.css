@@ -1,0 +1,158 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background-color: #1a1a1a; /* Dark background */
+  color: #ffffff; /* White text */
+}
+
+.product-detail {
+  padding: 20px;
+  color: #ffffff; /* White text */
+  background-color: #1a1a1a; /* Dark background for the page */
+  max-width: 800px; /* Center the product detail */
+  margin: 0 auto; /* Center align */
+}
+
+.images-container {
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  margin-bottom: 20px; /* Space below images */
+}
+
+.images-container img {
+  width: 300px; /* Adjust image width */
+  height: auto;
+  margin: 5px;
+  border-radius: 8px;
+  transition: transform 0.3s;
+}
+
+.images-container img:hover {
+  transform: scale(1.05);
+}
+
+.review-section {
+  width: 100%;
+  margin-top: 20px; /* Space above review section */
+}
+
+.review-section textarea {
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px;
+  resize: none;
+  background-color: #333333; /* Darker textarea background */
+  color: #ffffff;
+  min-height: 80px; /* Minimum height for the textarea */
+}
+
+.cubes {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0; /* Margin around cubes */
+}
+
+.cube {
+  width: 40px;
+  height: 40px;
+  margin: 0 8px;
+  background-color: transparent; /* Transparent background for wireframe effect */
+  border: 2px solid rgba(0, 255, 255, 0.6); /* Glowing edges for 3D wireframe look */
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 0 10px rgba(0, 255, 255, 0.6));
+}
+
+.cube:hover {
+  transform: scale(1.1); /* Slightly enlarge on hover */
+}
+
+.reviews {
+  max-width: 600px;
+  margin: 20px auto; /* Center align reviews */
+}
+
+.review {
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 10px;
+}
+
+.overall-rating {
+  text-align: center;
+  color: #00FFFF; /* Blue highlight for rating */
+  font-weight: bold; /* Bold font for emphasis */
+  margin-top: 10px; /* Space above overall rating */
+}
+
+.submit-button {
+  background-color: #00FFFF; /* Blue button */
+  color: #ffffff;
+  font-weight: bold;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 10px; /* Space above button */
+}
+
+.submit-button:hover {
+  background-color: #00a7a7; /* Darker blue on hover */
+}
+
+.rating-and-reviews {
+  text-align: center; /* Center align rating and review section */
+  margin-top: 20px; /* Space above rating and reviews */
+}
+
+/* Glowing effect for the cubes */
+.glow {
+  background: rgba(0, 255, 255, 0.2); /* Semi-transparent blue */
+  border-radius: 4px;
+  box-shadow: 0 0 5px rgba(0, 255, 255, 0.7), 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+
+/* ProductDetail.css */
+
+/* Review textarea styles */
+.review-section textarea {
+  background-color: #2c2c2c; /* Dark background */
+  color: #ffffff; /* White text */
+  border: 1px solid #4a4a4a; /* Darker border */
+  border-radius: 4px;
+  transition: border 0.3s;
+}
+
+.review-section textarea:focus {
+  border: 1px solid #5c77b6; /* Highlight border on focus */
+  outline: none; /* Remove default outline */
+}
+
+/* Reviews area styles */
+.reviews {
+  background-color: #1e1e1e; /* Darker background for reviews */
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid #4a4a4a; /* Border around the reviews area */
+}
+
+.reviews .review {
+  background-color: #2c2c2c; /* Darker background for individual reviews */
+  color: #ffffff; /* White text */
+  border-radius: 4px;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem; /* Space between reviews */
+}
+
+.reviews .review p {
+  margin: 0; /* Remove default margin */
+}
+
+.reviews .review p.font-bold {
+  color: #5c77b6; /* Highlight the review text */
+}

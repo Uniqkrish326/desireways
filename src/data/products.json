@@ -1,0 +1,80 @@
+[
+  {
+    "id": 1,
+    "category": "electronics",
+    "name": "Phones",
+    "title": "Smartphone 2024 Edition",
+    "link": "/products/smartphone",
+    "description": "A cool smartphone with great features.",
+    "price": 299,
+    "images": [
+      "path-to-image/smartphone1.jpg",
+      "path-to-image/smartphone2.jpg"
+    ],
+    "videos": [
+      "path-to-video/smartphone-demo.mp4"
+    ]
+  },
+  {
+    "id": 2,
+    "category": "electronics",
+    "name": "Laptops",
+    "title": "High-Performance Laptop",
+    "link": "/products/laptop",
+    "description": "A high-performance laptop for professionals.",
+    "price": 999,
+    "images": [
+      "path-to-image/laptop1.jpg",
+      "path-to-image/laptop2.jpg"
+    ],
+    "videos": [
+      "path-to-video/laptop-demo.mp4"
+    ]
+  },
+  {
+    "id": 3,
+    "category": "electronics",
+    "name": "Phones",
+    "title": "Smartphone Pro 2024",
+    "link": "/products/smartphone-pro",
+    "description": "A premium smartphone with advanced features.",
+    "price": 499,
+    "images": [
+      "path-to-image/smartphone-pro1.jpg",
+      "path-to-image/smartphone-pro2.jpg"
+    ],
+    "videos": [
+      "path-to-video/smartphone-pro-demo.mp4"
+    ]
+  },
+  {
+    "id": 4,
+    "category": "electronics",
+    "name": "Phones",
+    "title": "Smartphone Mini 2024",
+    "link": "/products/smartphone-mini",
+    "description": "A compact smartphone with all essential features.",
+    "price": 199,
+    "images": [
+      "path-to-image/smartphone-mini1.jpg",
+      "path-to-image/smartphone-mini2.jpg"
+    ],
+    "videos": [
+      "path-to-video/smartphone-mini-demo.mp4"
+    ]
+  },
+  {
+    "id": 5,
+    "category": "fashion",
+    "name": "Clothing",
+    "title": "Stylish Jacket",
+    "link": "/products/jacket",
+    "description": "A stylish jacket for winter.",
+    "price": 89,
+    "images": [
+      "path-to-image/jacket1.jpg",
+      "path-to-image/jacket2.jpg"
+    ],
+    "videos": []
+  }
+]

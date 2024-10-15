@@ -1,0 +1,9 @@
+
+ package.json
+ 
+  "homepage": "https://github.com/Uniqkrish326/desireways",
+
+  "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
+
+
