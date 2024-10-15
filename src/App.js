@@ -8,7 +8,7 @@ import ProductDetail from './pages/ProductDetail';
 
 function App() {
   return (
-    <Router>
+    <Router basename={process.env.PUBLIC_URL}>  {/* Added basename for routing on GitHub Pages */}
       <div>
         <Header />
         <Routes>
