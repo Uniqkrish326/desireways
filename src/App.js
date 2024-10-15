@@ -14,7 +14,7 @@ function App() {
         <Header />
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/components/admin" element={<Admin />} /> {/* Admin Dashboard Route */}
+          <Route path="/admin" element={<Admin />} /> {/* Admin Dashboard Route */}
           <Route path="/products/:category" element={<ModelList />} />
           <Route path="/products/:category/:model" element={<FilteredProductList />} />
           <Route path="/products/:category/:model/:productId" element={<ProductDetail />} />
