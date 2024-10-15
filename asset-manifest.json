@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/Uniqkrish326/static/css/main.9f9e4d8c.css",
+    "main.js": "/Uniqkrish326/static/js/main.57f38796.js",
+    "index.html": "/Uniqkrish326/index.html",
+    "main.9f9e4d8c.css.map": "/Uniqkrish326/static/css/main.9f9e4d8c.css.map",
+    "main.57f38796.js.map": "/Uniqkrish326/static/js/main.57f38796.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.9f9e4d8c.css",
+    "static/js/main.57f38796.js"
+  ]
+}
