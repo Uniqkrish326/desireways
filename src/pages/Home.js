@@ -1,7 +1,9 @@
-// src/pages/Home.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { fetchGoogleResults } from '../api/google';
-import Categories from '../components/Categories'; // Make sure this is correctly implemented
+import Categories from '../components/Categories';
+import FAQ from '../components/FAQ';
+import Newsletter from '../components/NewsletterSignup';
+import Footer from '../components/Footer'; // Import Footer component
 
 const Home = () => {
   const [userPrompt, setUserPrompt] = useState('');
@@ -9,7 +11,6 @@ const Home = () => {
   const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
 
-  // Memoize the handleSearch function to avoid unnecessary re-renders
   const handleSearch = useCallback(async () => {
     setLoading(true);
     try {
@@ -20,18 +21,18 @@ const Home = () => {
       console.error('Failed to fetch results:', error);
     }
     setLoading(false);
-  }, [userPrompt, selectedCategory]); // Include userPrompt and selectedCategory in dependencies
+  }, [userPrompt, selectedCategory]);
 
   useEffect(() => {
     if (selectedCategory) {
       handleSearch();
     }
-  }, [selectedCategory, handleSearch]); // Include handleSearch in the dependency array
+  }, [selectedCategory, handleSearch]);
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center py-10">
-      <h1 className="text-4xl font-bold mb-8">Find Products Based on Your Desire</h1>
-      <div className="w-full max-w-2xl mb-6">
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center py-5"> {/* Reduced padding */}
+      <h1 className="text-2xl md:text-4xl font-bold mb-4">Find Products Based on Your Desire</h1> {/* Reduced font size for mobile */}
+      <div className="w-full max-w-xs md:max-w-2xl mb-4"> {/* Adjust max width for mobile */}
         <input
           type="text"
           value={userPrompt}
@@ -42,11 +43,11 @@ const Home = () => {
       </div>
       <button
         onClick={handleSearch}
-        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition duration-300 mt-6"
+        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition duration-300"
       >
         {loading ? 'Searching...' : 'Search'}
       </button>
-      <div className="mt-10 w-full max-w-4xl">
+      <div className="mt-8 w-full max-w-4xl"> {/* Reduced top margin for results section */}
         {results.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {results.map((item, index) => (
@@ -76,6 +77,17 @@ const Home = () => {
         )}
       </div>
       <Categories onSelectCategory={setSelectedCategory} />
+      
+      <div className="mt-8 w-full max-w-4xl"> {/* Reduced top margin for FAQ section */}
+        <FAQ />
+      </div>
+
+      <div className="mt-8 w-full max-w-4xl"> {/* Reduced top margin for Newsletter section */}
+        <Newsletter />
+      </div>
+
+      {/* Add Footer Component */}
+      <Footer />
     </div>
   );
 };

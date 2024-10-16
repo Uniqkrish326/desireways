@@ -15,7 +15,15 @@ const ModelList = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center py-10">
-      <h1 className="text-4xl font-bold mb-8">{category} Models</h1>
+      {/* Back Link */}
+      <button 
+        onClick={() => navigate(-1)} 
+        className="text-blue-500 mb-4 text-lg hover:underline"
+      >
+        Back
+      </button>
+
+      <h1 className="text-4xl font-bold mb-8">{category} Products</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {models.map((model, index) => (
           <div key={index} className="bg-gray-800 p-6 rounded-lg shadow-lg">

@@ -1,11 +1,27 @@
-// src/components/Header.js
 import React from 'react';
 
 function Header() {
   return (
-    <header className="bg-blue-700 p-6 rounded-b-lg shadow-lg text-white text-center">
-      <h1 className="text-3xl font-extrabold">Desireways</h1>
-      <p className="mt-2 text-lg">Get recommended products based on your desires.</p>
+    <header className="bg-blue-700 p-4 shadow-lg relative">
+      <div className="flex flex-col md:flex-row items-center justify-between max-w-6xl mx-auto">
+        {/* Left Side: Logo, Title, Slogan */}
+        <div className="flex items-center mb-4 md:mb-0">
+          <img
+            src={`${process.env.PUBLIC_URL}/logo_nav.png`}
+            alt="Desireways Logo"
+            className="h-10 mr-3"
+          />
+          <div className="flex flex-col">
+            <h1 className="text-3xl font-extrabold text-white">Desireways</h1>
+            <p className="mt-1 text-sm text-white italic">Your desires, our products.</p>
+          </div>
+        </div>
+
+        {/* Right Side: Beta version info, vertically centered */}
+        <div className="text-white text-sm italic">
+          No signup required, beta version
+        </div>
+      </div>
     </header>
   );
 }

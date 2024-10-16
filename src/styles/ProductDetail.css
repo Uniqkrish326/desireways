@@ -156,3 +156,15 @@ body {
 .reviews .review p.font-bold {
   color: #5c77b6; /* Highlight the review text */
 }
+
+
+.media-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Adjusts the number of columns based on screen size */
+  gap: 16px; /* Space between grid items */
+}
+
+img, video {
+  width: 100%; /* Full width of the container */
+  height: auto; /* Maintain aspect ratio */
+}

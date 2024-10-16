@@ -3,16 +3,17 @@
     "id": 1,
     "category": "electronics",
     "name": "Phones",
-    "title": "Smartphone 2024 Edition",
-    "link": "/products/smartphone",
-    "description": "A cool smartphone with great features.",
+    "title": "Apple iPhone 16 (128 GB) - Ultramarine",
+    "link": "https://amzn.to/3NvvEU4",
+    "description": "BUILT FOR APPLE INTELLIGENCE — Apple Intelligence is the personal intelligence system that helps you write, express yourself and get things done effortlessly. With groundbreaking privacy protections, it gives you peace of mind that no one else can access your data — not even Apple.BUILT FOR APPLE INTELLIGENCE — Apple Intelligence is the personal intelligence system that helps you write, express yourself and get things done effortlessly. With groundbreaking privacy protections, it gives you peace of mind that no one else can access your data — not even Apple.BUILT FOR APPLE INTELLIGENCE — Apple Intelligence is the personal intelligence system that helps you write, express yourself and get things done effortlessly. With groundbreaking privacy protections, it gives you peace of mind that no one else can access your data — not even Apple.",
     "price": 299,
     "images": [
-      "path-to-image/smartphone1.jpg",
-      "path-to-image/smartphone2.jpg"
+      "https://m.media-amazon.com/images/I/31r4Q1+7OVL._FMpng_SY85_.png",
+      "https://m.media-amazon.com/images/I/31r4Q1+7OVL._FMpng_SY85_.png"
+      
     ],
     "videos": [
-      "path-to-video/smartphone-demo.mp4"
+      
     ]
   },
   {
