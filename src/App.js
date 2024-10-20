@@ -11,6 +11,7 @@ function App() {
   return (
     <Router basename={process.env.PUBLIC_URL}>
       <div>
+    <meta name="google-site-verification" content="jc1g5hw3g1nXlZI9rJ7saz4R8d7BmqKDnmfrBcbMoUo" />
         <Header />
         <Routes>
           <Route path="/" element={<Home />} />
