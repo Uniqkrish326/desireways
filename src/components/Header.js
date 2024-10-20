@@ -3,6 +3,7 @@ import React from 'react';
 function Header() {
   return (
     <header className="bg-blue-700 p-4 shadow-lg relative">
+    <meta name="google-site-verification" content="jc1g5hw3g1nXlZI9rJ7saz4R8d7BmqKDnmfrBcbMoUo" />
       <div className="flex flex-col md:flex-row items-center justify-between max-w-6xl mx-auto">
         {/* Left Side: Logo, Title, Slogan */}
         <div className="flex items-center mb-4 md:mb-0">
