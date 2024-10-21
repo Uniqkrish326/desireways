@@ -10,7 +10,7 @@ import Admin from './components/admin'; // Import your admin dashboard
 function App() {
   return (
     <Router basename={process.env.PUBLIC_URL}>
-      <div>
+      <div>   
         <Header />
         <Routes>
           <Route path="/" element={<Home />} />
