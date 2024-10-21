@@ -11,7 +11,6 @@ const Categories = () => {
     'sports & fitness',
     'toys & games',
     'beauty',
-    'automotive',
   ];
 
   const navigate = useNavigate();

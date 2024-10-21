@@ -3,86 +3,53 @@
     "id": 1,
     "category": "electronics",
     "name": "Phones",
-    "title": "Apple iPhone 16 (128 GB) - Ultramarine",
-    "link": "https://amzn.to/3NvvEU4",
-    "description": "BUILT FOR APPLE INTELLIGENCE — Apple Intelligence is the personal intelligence system that helps you write, express yourself and get things done effortlessly. With groundbreaking privacy protections, it gives you peace of mind that no one else can access your data — not even Apple.BUILT FOR APPLE INTELLIGENCE — Apple Intelligence is the personal intelligence system that helps you write, express yourself and get things done effortlessly. With groundbreaking privacy protections, it gives you peace of mind that no one else can access your data — not even Apple.BUILT FOR APPLE INTELLIGENCE — Apple Intelligence is the personal intelligence system that helps you write, express yourself and get things done effortlessly. With groundbreaking privacy protections, it gives you peace of mind that no one else can access your data — not even Apple.",
-    "price": 299,
+    "title": "iQOO Z9 Lite 5G (Aqua Flow, 4GB RAM, 128GB)",
+    "link": "https://amzn.to/3NAKYix",
+    "description": "Powered by Android 14, 4GB RAM, 128GB storage, 5000mAh battery. Includes Dual SIM, rear camera, Wi-Fi, Bluetooth 5.4, and USB. Comes with charger, USB cable, and phone case.",
+    "price": "10,000",
     "images": [
-      "https://m.media-amazon.com/images/I/31r4Q1+7OVL._FMpng_SY85_.png",
-      "https://m.media-amazon.com/images/I/31r4Q1+7OVL._FMpng_SY85_.png"
-      
+      "https://m.media-amazon.com/images/I/61WZicN+coL._SL1200_.jpg"
     ],
-    "videos": [
-      
-    ]
+    "videos": []
   },
   {
     "id": 2,
     "category": "electronics",
-    "name": "Laptops",
-    "title": "High-Performance Laptop",
-    "link": "/products/laptop",
-    "description": "A high-performance laptop for professionals.",
-    "price": 999,
+    "name": "Phones",
+    "title": "realme NARZO N65 5G (Amber Gold, 4GB RAM, 128GB)",
+    "link": "https://amzn.to/40dLjiM",
+    "description": "India's 1st D6300 5G chipset, 6GB RAM, 50MP AI camera, 5000mAh battery, 120Hz display, slim design. Includes charger, USB cable, and phone case.",
+    "price": "10,000",
     "images": [
-      "path-to-image/laptop1.jpg",
-      "path-to-image/laptop2.jpg"
+      "https://m.media-amazon.com/images/I/81MS1KhiTvL._SL1500_.jpg"
     ],
-    "videos": [
-      "path-to-video/laptop-demo.mp4"
-    ]
+    "videos": []
   },
   {
     "id": 3,
     "category": "electronics",
     "name": "Phones",
-    "title": "Smartphone Pro 2024",
-    "link": "/products/smartphone-pro",
-    "description": "A premium smartphone with advanced features.",
-    "price": 499,
+    "title": "TECNO POP 9 5G (Aurora Cloud, 4GB+64GB)",
+    "link": "https://amzn.to/3zVjfGd",
+    "description": "Segment's 1st 48MP Sony AI Camera, D6300 5G processor, NFC, 5000mAh battery, Dolby Atmos sound. Includes IR Remote and dual speaker. No charger included.",
+    "price": "9,000",
     "images": [
-      "path-to-image/smartphone-pro1.jpg",
-      "path-to-image/smartphone-pro2.jpg"
+      "https://m.media-amazon.com/images/I/61yHIxBZ6iL._SL1280_.jpg"
     ],
-    "videos": [
-      "path-to-video/smartphone-pro-demo.mp4"
-    ]
+    "videos": []
   },
   {
     "id": 4,
     "category": "electronics",
-    "name": "Phones",
-    "title": "Smartphone Mini 2024",
-    "link": "/products/smartphone-mini",
-    "description": "A compact smartphone with all essential features.",
-    "price": 199,
+    "name": "Earbuds",
+    "title": "boAt Nirvana Space Truly Wireless Earbuds (Cosmic Black)",
+    "link": "https://amzn.to/4eRDrrs",
+    "description": "360º Spatial Audio, 32dB ANC, 100HRS playback, 4 Mics with AI-ENx™, in-ear detection, DLC drivers, multipoint connectivity.",
+    "price": "1,999",
     "images": [
-      "path-to-image/smartphone-mini1.jpg",
-      "path-to-image/smartphone-mini2.jpg"
-    ],
-    "videos": [
-      "path-to-video/smartphone-mini-demo.mp4"
-    ]
-  },
-  {
-    "id": 5,
-    "category": "fashion",
-    "name": "Clothing",
-    "title": "Stylish Jacket",
-    "link": "/products/jacket",
-    "description": "A stylish jacket for winter.",
-    "price": 89,
-    "images": [
-      "path-to-image/jacket1.jpg",
-      "path-to-image/jacket2.jpg"
+      "https://m.media-amazon.com/images/I/71SB8ivq4GL._SL1500_.jpg"
     ],
     "videos": []
   }
-
-
+  
 ]
-
-
-
-
-
