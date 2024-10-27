@@ -19,7 +19,6 @@ const Profile = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
-  // eslint-disable-next-line 
   const [isEditing, setIsEditing] = useState(false);
 
   const navigate = useNavigate();
