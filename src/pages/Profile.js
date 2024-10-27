@@ -4,6 +4,7 @@ import { auth, db } from '../firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { MdError } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
+import { onAuthStateChanged } from 'firebase/auth';
 
 const Profile = () => {
   const [userData, setUserData] = useState({
@@ -24,38 +25,30 @@ const Profile = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      setLoading(true); // Start loading
-      try {
-        const user = auth.currentUser;
-        if (user) {
-          const docRef = doc(db, 'users', user.uid);
-          const docSnap = await getDoc(docRef);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const docRef = doc(db, 'users', user.uid);
+        const docSnap = await getDoc(docRef);
 
-          if (docSnap.exists()) {
-            const userDataFromDB = docSnap.data();
-            setUserData({
-              ...userDataFromDB.profile[0],
-              email: user.email,
-              points: userDataFromDB.points || 0,
-              logs: userDataFromDB.logs || [],
-            });
-            setIsEditing(true);
-          } else {
-            await updateDoc(docRef, { profile: [], points: 0, logs: [] });
-          }
+        if (docSnap.exists()) {
+          const userDataFromDB = docSnap.data();
+          setUserData({
+            ...userDataFromDB.profile[0],
+            email: user.email,
+            points: userDataFromDB.points || 0,
+            logs: userDataFromDB.logs || [],
+          });
+          setIsEditing(true);
         } else {
-          setError("User is not authenticated. Please log in again.");
+          await updateDoc(docRef, { profile: [], points: 0, logs: [] });
         }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        setError("Failed to load user data. Please try again later.");
-      } finally {
-        setLoading(false); // End loading
+        setLoading(false);
+      } else {
+        setLoading(false); // Set loading to false even if no user is logged in
       }
-    };
+    });
 
-    fetchUserData();
+    return () => unsubscribe();
   }, []);
 
   const handleChange = (e) => {
