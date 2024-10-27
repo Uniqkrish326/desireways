@@ -21,30 +21,37 @@ const Profile = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [isEditing, setIsEditing] = useState(false);
-  
+
   const navigate = useNavigate();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const docRef = doc(db, 'users', user.uid);
-        const docSnap = await getDoc(docRef);
+        try {
+          const docSnap = await getDoc(docRef);
 
-        if (docSnap.exists()) {
-          const userDataFromDB = docSnap.data();
-          setUserData({
-            ...userDataFromDB.profile[0],
-            email: user.email,
-            points: userDataFromDB.points || 0,
-            logs: userDataFromDB.logs || [],
-          });
-          setIsEditing(true);
-        } else {
-          await updateDoc(docRef, { profile: [], points: 0, logs: [] });
+          if (docSnap.exists()) {
+            const userDataFromDB = docSnap.data();
+            setUserData({
+              ...userDataFromDB.profile[0],
+              email: user.email,
+              points: userDataFromDB.points || 0,
+              logs: userDataFromDB.logs || [],
+            });
+            setIsEditing(true);
+          } else {
+            await updateDoc(docRef, { profile: [], points: 0, logs: [] });
+          }
+        } catch (err) {
+          console.error("Error loading user data:", err);
+          setError("Failed to load user data. Please try again later.");
+        } finally {
+          setLoading(false);
         }
-        setLoading(false);
       } else {
-        setLoading(false); // Set loading to false even if no user is logged in
+        setError("User not authenticated. Please log in again.");
+        setLoading(false);
       }
     });
 
@@ -128,9 +135,12 @@ const Profile = () => {
     return <p className="text-center text-gray-600">Loading user data...</p>;
   }
 
+  if (error) {
+    return <p className="text-center text-red-500">{error}</p>;
+  }
+
   return (
     <div className="max-w-5xl mx-auto p-6 bg-gray-800 text-white rounded-lg shadow-md">
-      {/* Back Text */}
       <span 
         onClick={handleBack} 
         className="mb-4 text-blue-400 cursor-pointer text-sm hover:underline" 
@@ -214,7 +224,6 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* Alert Popup */}
       {showAlert && (
         <div className="fixed top-0 left-0 right-0 flex items-center justify-center z-50">
           <div className="bg-green-600 text-white p-4 rounded shadow-md">
