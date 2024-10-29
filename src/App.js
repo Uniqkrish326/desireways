@@ -1,6 +1,5 @@
-// src/App.js
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase';
 import Header from './components/Header';
@@ -19,57 +18,25 @@ function App() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user); // Set user state to the logged-in user or null
+      setUser(user);
     });
-    return () => unsubscribe(); // Clean up the listener on unmount
+    return () => unsubscribe();
   }, []);
 
   return (
-    <Router basename={process.env.PUBLIC_URL}>
+    <Router>
       <div>
         <Header />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignupWithReferral />} />
-
-          {/* Protected routes */}
-          <Route
-            path="/add-product"
-            element={
-              <ProtectedRoute user={user}>
-                <ModelList />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/wishlist"
-            element={
-              <ProtectedRoute user={user}>
-                <Wishlist />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute user={user}>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/products/:category"
-            element={<ModelList />}
-          />
-          <Route
-            path="/products/:category/:model"
-            element={<FilteredProductList />}
-          />
-          <Route
-            path="/products/:category/:model/:productId"
-            element={<ProductDetail />}
-          />
+          <Route path="/add-product" element={<ProtectedRoute user={user}><ModelList /></ProtectedRoute>} />
+          <Route path="/wishlist" element={<ProtectedRoute user={user}><Wishlist /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute user={user}><Profile /></ProtectedRoute>} />
+          <Route path="/products/:category" element={<ModelList />} />
+          <Route path="/products/:category/:model" element={<FilteredProductList />} />
+          <Route path="/products/:category/:model/:productId" element={<ProductDetail />} />
           <Route path="*" element={<Home />} />
         </Routes>
       </div>
@@ -89,9 +56,8 @@ function SignupWithReferral() {
     const ref = params.get('ref');
     if (ref) {
       setReferralCode(ref);
-      sessionStorage.setItem('referralCode', ref); // Store referral code in sessionStorage
+      sessionStorage.setItem('referralCode', ref);
     } else {
-      // Retrieve from sessionStorage if URL doesn't have it
       const storedRef = sessionStorage.getItem('referralCode');
       setReferralCode(storedRef);
     }
