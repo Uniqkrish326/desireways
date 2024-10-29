@@ -1,6 +1,6 @@
 // src/App.js
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase'; // Ensure this imports your Firebase configuration
 import Header from './components/Header';
@@ -13,6 +13,7 @@ import Signup from './pages/Signup';
 import Wishlist from './pages/Wishlist';
 import Profile from './pages/Profile'; // Import the Profile component
 import ProtectedRoute from './ProtectedRoute';
+import NotFound from './pages/NotFound'; // Import your NotFound component
 
 function App() {
   const [user, setUser] = useState(null);
@@ -26,14 +27,14 @@ function App() {
   }, []);
 
   return (
-    <Router basename={process.env.PUBLIC_URL}>
+    <Router>
       <div>
         <Header />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          
+
           {/* Protected routes */}
           <Route
             path="/add-product"
@@ -43,8 +44,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
-
           <Route
             path="/wishlist"
             element={
@@ -53,41 +52,29 @@ function App() {
               </ProtectedRoute>
             }
           />
-
-<Route
-  path="/profile"
-  element={
-    <ProtectedRoute user={user}>
-      <Profile />
-    </ProtectedRoute>
-  }
-/>
-
-
           <Route
-            path="/products/:category"
+            path="/profile"
             element={
               <ProtectedRoute user={user}>
-                <ModelList />
+                <Profile />
               </ProtectedRoute>
             }
+          />
+          <Route
+            path="/products/:category"
+            element={<ModelList />} // Allow direct access to ModelList
           />
           <Route
             path="/products/:category/:model"
-            element={
-              <ProtectedRoute user={user}>
-                <FilteredProductList />
-              </ProtectedRoute>
-            }
+            element={<FilteredProductList />} // Allow direct access to FilteredProductList
           />
           <Route
             path="/products/:category/:model/:productId"
-            element={
-              <ProtectedRoute user={user}>
-                <ProductDetail />
-              </ProtectedRoute>
-            }
+            element={<ProductDetail />} // Allow direct access to ProductDetail
           />
+
+          {/* Catch-all route for 404 */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
     </Router>
