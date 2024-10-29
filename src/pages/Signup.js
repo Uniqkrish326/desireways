@@ -40,18 +40,21 @@ function Signup() {
 
             // Handle referral code
             if (referralCode) {
-                const referrerRef = doc(db, 'users', referralCode); // Adjusted to look up by referral code
+                const referrerRef = doc(db, 'users', referralCode); // Lookup referrer by their user ID
                 const referrerDoc = await getDoc(referrerRef);
 
                 if (referrerDoc.exists()) {
                     const referrerData = referrerDoc.data();
-                    
+
                     // Update points and referral count for the referrer
                     await updateDoc(referrerRef, {
                         points: (referrerData.points || 0) + 20, // Add 20 points to referrer
                         referralsCount: (referrerData.referralsCount || 0) + 1, // Increment referral count
                     });
-                    logAction(`Referral by ${user.uid} added 20 points and updated referral count for referrer ${referralCode}.`);
+                    logAction(`Referral by ${user.uid} added 20 points and updated referral count for referrer ${referrerData.referralCode}.`);
+
+                    // Show alert that both users got points
+                    alert(`Both you and ${referrerData.email} have received 20 points for the referral!`);
                 } else {
                     setError('Referral code is invalid.'); // Inform the user if the referral code does not exist
                 }
@@ -158,7 +161,9 @@ function Signup() {
                 
                 <p className="mt-4 text-center text-gray-600">
                     Already have an account?{' '}
-                    <a href="../desireways/login" className="text-blue-500 hover:text-blue-600 font-semibold">Log in</a>
+                    <a href="../desireways/login" className="text-blue-600 hover:underline">
+                        Log In
+                    </a>
                 </p>
             </form>
         </div>
