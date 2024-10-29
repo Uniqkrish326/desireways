@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { auth } from '../firebase';
 import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 function Signup() {
@@ -13,6 +13,10 @@ function Signup() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+
+  const logAction = (message) => {
+    console.log(`Log: ${message}`);
+  };
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -31,6 +35,7 @@ function Signup() {
         referralsCount: 0,
         referralCode: generateReferralCode(user.uid),
       });
+      logAction(`User ${user.uid} signed up and received 20 points.`);
 
       // Handle referral code
       if (referralCode) {
@@ -42,10 +47,11 @@ function Signup() {
           const updatedPoints = (referrerData.points || 0) + 20;
           const updatedReferralsCount = (referrerData.referralsCount || 0) + 1;
 
-          await setDoc(referrerRef, {
+          await updateDoc(referrerRef, {
             points: updatedPoints,
             referralsCount: updatedReferralsCount,
-          }, { merge: true });
+          });
+          logAction(`Referral by ${user.uid} added 20 points and updated referral count for referrer ${referralCode}.`);
         } else {
           setError('Referral code is invalid.');
         }
@@ -73,7 +79,7 @@ function Signup() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // Create user document
+      // Check if user already exists
       const userRef = doc(db, 'users', user.uid);
       const userDoc = await getDoc(userRef);
       if (!userDoc.exists()) {
@@ -83,6 +89,7 @@ function Signup() {
           referralsCount: 0,
           referralCode: generateReferralCode(user.uid),
         });
+        logAction(`Google signup: User ${user.uid} received 20 points.`);
       }
 
       navigate('/'); // Redirect to home after successful signup

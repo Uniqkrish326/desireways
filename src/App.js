@@ -1,8 +1,8 @@
 // src/App.js
 import React, { useEffect, useState } from 'react';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from './firebase'; // Ensure this imports your Firebase configuration
+import { auth } from './firebase';
 import Header from './components/Header';
 import Home from './pages/Home';
 import ModelList from './pages/ModelList';
@@ -11,7 +11,7 @@ import ProductDetail from './pages/ProductDetail';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Wishlist from './pages/Wishlist';
-import Profile from './pages/Profile'; // Import the Profile component
+import Profile from './pages/Profile';
 import ProtectedRoute from './ProtectedRoute';
 
 function App() {
@@ -21,7 +21,6 @@ function App() {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user); // Set user state to the logged-in user or null
     });
-
     return () => unsubscribe(); // Clean up the listener on unmount
   }, []);
 
@@ -32,8 +31,8 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          
+          <Route path="/signup" element={<SignupWithReferral />} />
+
           {/* Protected routes */}
           <Route
             path="/add-product"
@@ -71,7 +70,6 @@ function App() {
             path="/products/:category/:model/:productId"
             element={<ProductDetail />}
           />
-          {/* Catch-all route - Any unmatched path will redirect to Home */}
           <Route path="*" element={<Home />} />
         </Routes>
       </div>
@@ -80,3 +78,24 @@ function App() {
 }
 
 export default App;
+
+// Helper component to handle referral links on signup
+function SignupWithReferral() {
+  const location = useLocation();
+  const [referralCode, setReferralCode] = useState(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const ref = params.get('ref');
+    if (ref) {
+      setReferralCode(ref);
+      sessionStorage.setItem('referralCode', ref); // Store referral code in sessionStorage
+    } else {
+      // Retrieve from sessionStorage if URL doesn't have it
+      const storedRef = sessionStorage.getItem('referralCode');
+      setReferralCode(storedRef);
+    }
+  }, [location]);
+
+  return <Signup referralCode={referralCode} />;
+}
