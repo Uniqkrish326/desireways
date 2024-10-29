@@ -161,7 +161,7 @@ function Signup() {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full p-3 border border-gray-300 rounded-md text-black focus:outline-none focus:ring-2 focus:ring-blue-400"
             required
             aria-label="Password"
           />
@@ -175,7 +175,7 @@ function Signup() {
           placeholder="Referral Code (optional)"
           value={referralCode}
           onChange={(e) => setReferralCode(e.target.value)}
-          className="w-full mb-4 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-full mb-4 p-3 border border-gray-300 text-black rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
           aria-label="Referral Code"
         />
         
