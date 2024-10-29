@@ -7,3 +7,46 @@
     "deploy": "gh-pages -d build",
 
 
+Firestore
+  ├── users (Collection)
+  │     ├── user_id_1 (Document)
+  │     │     ├── profile: [Object] (Field)
+  │     │     ├── points: 50 (Field)
+  │     │     └── otherField: value (Field)
+  │     ├── user_id_2 (Document)
+  │     │     ├── profile: [Object] (Field)
+  │     │     ├── points: 75 (Field)
+  │     │     └── otherField: value (Field)
+
+  {
+  "profileName": "John Doe",
+  "dateOfBirth": "2023-10-28T00:00:00Z", // Firestore timestamp
+  "phoneNumber": "+1234567890",
+  "points": 100,
+  "referralCode": "REF123456",
+  "referralsCount": 5,
+  "profileFilled": true,
+  "pointsLog": [
+    {
+      "timestamp": "2023-10-28T12:34:56Z",
+      "points": 50,
+      "action": "Profile filled for the first time"
+    }
+  ],
+  "profileLogs": [
+    {
+      "timestamp": "2023-10-28T12:34:56Z",
+      "action": "Profile filled for the first time",
+      "pointsAwarded": 50,
+      "previousData": {}
+    }
+  ],
+  "profileData": [
+    {
+      "profileName": "John Doe",
+      "dateOfBirth": "2023-10-28T00:00:00Z", // Firestore timestamp
+      "phoneNumber": "+1234567890",
+      "timestamp": "2023-10-28T12:34:56Z"
+    }
+  ]
+}

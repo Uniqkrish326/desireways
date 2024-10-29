@@ -50,18 +50,15 @@ const ProductDetail = () => {
     setLoading(true);
     const reviewsRef = doc(db, 'users', userId);
     const userDoc = await getDoc(reviewsRef);
-    const fetchedReviews = userDoc.exists() ? userDoc.data().reviews.filter(review => review.productId === productId) : [];
+    const fetchedReviews = userDoc.exists() ? userDoc.data().reviews?.filter(review => review.productId === productId) || [] : [];
     setReviews(fetchedReviews);
     setLoading(false);
   };
 
-  useEffect(() => {
-    try {
-      fetchReviews();
-    } catch (error) {
-      console.error("Error fetching reviews:", error);
-    }// eslint-disable-next-line 
-  }, [userId, productId]); // still keeping userId and productId in dependency array
+  useEffect(() => {   
+    fetchReviews();
+    // eslint-disable-next-line
+  }, [userId, productId]);
 
   const handleRatingClick = (rating) => setUserRating(rating);
 
@@ -226,41 +223,31 @@ const ProductDetail = () => {
       </form>
 
       <h2 className="text-3xl font-bold mb-6 text-center">User Reviews</h2>
-{loading ? (
-  <p className="text-center text-gray-500">Loading reviews...</p>
-) : reviews.length > 0 ? (
-  reviews.map((review) => (
-    <div key={review.timestamp} className="review mb-6 p-6 bg-gray-800 rounded-lg shadow-md transition-transform transform hover:scale-105">
-      <div className="flex justify-between items-center mb-2">
-        <h3 className="font-bold text-lg">{review.userName}</h3>
-        <div className="flex items-center">
-          {Array.from({ length: 5 }, (_, index) => (
-            <div key={index} className={`cube ${review.rating > index ? 'glow' : 'bg-transparent border border-gray-600'} w-5 h-5 m-1`} />
-          ))}
-        </div>
-      </div>
-      <p className="text-gray-300 mb-4">{review.text}</p>
-      <div className="flex justify-end">
-        <button
-          onClick={() => handleReviewEdit(review)}
-          className="text-yellow-500 hover:underline mr-4"
-        >
-          Edit
-        </button>
-        <button
-          onClick={() => handleReviewDelete(review)}
-          className="text-red-500 hover:underline"
-        >
-          Delete
-        </button>
-      </div>
-    </div>
-  ))
-) : (
-  <p className="text-center text-gray-500">No reviews yet. Be the first to leave one!</p>
-)}
-
-  
+      {loading ? (
+        <p>Loading reviews...</p>
+      ) : reviews.length === 0 ? (
+        <p>No reviews yet.</p>
+      ) : (
+        reviews.map((review) => (
+          <div key={review.timestamp} className="bg-gray-800 p-4 rounded-lg mb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <strong>{review.userName}</strong>
+                <div className="flex">
+                  {Array.from({ length: 5 }, (_, index) => (
+                    <div key={index} className={`cube ${review.rating > index ? 'glow' : 'bg-transparent border border-gray-600'} w-4 h-4 m-1`} />
+                  ))}
+                </div>
+              </div>
+              <div>
+                <button onClick={() => handleReviewEdit(review)} className="text-blue-500 mr-2">Edit</button>
+                <button onClick={() => handleReviewDelete(review)} className="text-red-500">Delete</button>
+              </div>
+            </div>
+            <p className="mt-2">{review.text}</p>
+          </div>
+        ))
+      )}
     </div>
   );
 };

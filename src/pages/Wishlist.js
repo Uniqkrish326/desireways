@@ -41,23 +41,31 @@ const Wishlist = () => {
       {wishlistItems.length === 0 ? (
         <p className="text-gray-500 text-center">Your wishlist is empty.</p>
       ) : (
-        <ul className="mt-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
           {wishlistItems.map((item, index) => {
             const product = products.find((p) => p.id === parseInt(item.productId));
             return (
               product && (
-                <li key={index} className="border-b border-gray-300 py-2">
+                <div key={index} className="border rounded-lg overflow-hidden shadow-lg">
                   <Link 
                     to={`/products/${product.category}/${product.name}/${product.id}`} // Correct URL format without subcategory
-                    className="text-blue-600"
+                    className="block h-full"
                   >
-                    {product.title}
+                    <img 
+                      src={product.images[0]} // Access the first image in the images array
+                      alt={product.title}
+                      className="w-full h-48 object-cover" // Set height and maintain aspect ratio
+                    />
+                    <div className="p-4">
+                      <h2 className="text-lg font-semibold">{product.title}</h2>
+                      <p className="text-gray-500">${product.price}</p> {/* Assuming there's a price */}
+                    </div>
                   </Link>
-                </li>
+                </div>
               )
             );
           })}
-        </ul>
+        </div>
       )}
     </div>
   );
