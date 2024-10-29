@@ -10,6 +10,7 @@ function Signup() {
     const [password, setPassword] = useState('');
     const [referralCode, setReferralCode] = useState('');
     const [error, setError] = useState('');
+    // eslint-disable-next-line
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
@@ -67,7 +68,7 @@ function Signup() {
             if (!userDoc.exists()) {
                 const newReferralCode = generateReferralCode(user.uid);
 
-                // Create user document
+                // Create user document with initial points
                 await setDoc(userRef, {
                     email: user.email,
                     points: 20, // New user starts with 20 points
@@ -152,42 +153,27 @@ function Signup() {
                         required
                         aria-label="Password"
                     />
-                    <span onClick={togglePasswordVisibility} className="absolute right-3 top-3 cursor-pointer">
-                        {showPassword ? '👁️' : '🙈'}
-                    </span>
+                    <button type="button" onClick={togglePasswordVisibility} className="absolute inset-y-0 right-0 flex items-center pr-3">
+                        {showPassword ? 'Hide' : 'Show'}
+                    </button>
                 </div>
                 
                 <input
                     type="text"
-                    placeholder="Referral Code (if any)"
+                    placeholder="Referral Code (optional)"
                     value={referralCode}
                     onChange={(e) => setReferralCode(e.target.value)}
                     className="w-full mb-4 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
                     aria-label="Referral Code"
                 />
                 
-                <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-blue-600 text-white p-3 rounded-md hover:bg-blue-700 transition duration-300"
-                >
-                    Sign Up
+                <button type="submit" className="w-full py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700">
+                    Sign Up with Email
                 </button>
                 
-                <button
-                    type="button"
-                    onClick={handleGoogleSignup}
-                    className="w-full bg-red-600 text-white p-3 rounded-md hover:bg-red-700 transition duration-300 mt-4"
-                >
-                    Continue with Google
+                <button type="button" onClick={handleGoogleSignup} className="w-full py-3 mt-4 bg-red-600 text-white font-semibold rounded-md hover:bg-red-700">
+                    Sign Up with Google
                 </button>
-                
-                <p className="mt-4 text-center">
-                    Already have an account?{' '}
-                    <a href="/login" className="text-blue-600 hover:underline">
-                        Log In
-                    </a>
-                </p>
             </form>
         </div>
     );
