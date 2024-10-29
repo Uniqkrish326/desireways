@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/desireways/static/css/main.6f27d24d.css",
-    "main.js": "/desireways/static/js/main.437ca7c9.js",
+    "main.js": "/desireways/static/js/main.0ab8505f.js",
     "index.html": "/desireways/index.html",
     "main.6f27d24d.css.map": "/desireways/static/css/main.6f27d24d.css.map",
-    "main.437ca7c9.js.map": "/desireways/static/js/main.437ca7c9.js.map"
+    "main.0ab8505f.js.map": "/desireways/static/js/main.0ab8505f.js.map"
   },
   "entrypoints": [
     "static/css/main.6f27d24d.css",
-    "static/js/main.437ca7c9.js"
+    "static/js/main.0ab8505f.js"
   ]
 }
