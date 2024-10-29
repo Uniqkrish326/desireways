@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { auth } from '../firebase';
+import { auth, db } from '../firebase';
 import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
-import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { doc, setDoc, getDoc, updateDoc, arrayUnion, serverTimestamp } from 'firebase/firestore';
 
 function Signup() {
   const [email, setEmail] = useState('');
@@ -11,12 +10,7 @@ function Signup() {
   const [referralCode, setReferralCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-
-  const logAction = (message) => {
-    console.log(`Log: ${message}`);
-  };
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -27,62 +21,17 @@ function Signup() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Create user document
-      const userRef = doc(db, 'users', user.uid);
-      await setDoc(userRef, {
-        email: user.email,
-        points: 20,
-        referralsCount: 0,
-        referralCode: generateReferralCode(user.uid),
-      });
-      logAction(`User ${user.uid} signed up and received 20 points.`);
+      await createUserDocument(user);
+      await handleReferral(user.uid);
 
-      // Handle referral code
-      if (referralCode) {
-        await handleReferral(referralCode, user.uid);
-      }
-
-      navigate('/'); // Redirect to home after successful signup
+      alert('Signup successful! You and your referrer both received 20 points.');
+      navigate('/');
     } catch (error) {
+      console.error("Error during signup with email/password:", error.message);
       setError(error.message);
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleReferral = async (referralCode, newUserId) => {
-    try {
-      const referrerRef = doc(db, 'users', referralCode);
-      const referrerDoc = await getDoc(referrerRef);
-
-      if (referrerDoc.exists()) {
-        const referrerData = referrerDoc.data();
-        const updatedPoints = (referrerData.points || 0) + 20;
-        const updatedReferralsCount = (referrerData.referralsCount || 0) + 1;
-
-        await updateDoc(referrerRef, {
-          points: updatedPoints,
-          referralsCount: updatedReferralsCount,
-        });
-
-        logAction(`Referral by ${newUserId} added 20 points and updated referral count for referrer ${referralCode}.`);
-        alert(`Both you and the referrer received 20 points!`);
-      } else {
-        setError('Referral code is invalid.');
-        logAction(`Invalid referral code: ${referralCode}`);
-      }
-    } catch (error) {
-      setError(`Referral error: ${error.message}`);
-      logAction(`Error updating referrer points or count for referral code: ${referralCode}.`);
-    }
-  };
-
-  const generateReferralCode = (userId) => {
-    return `REF${userId.substring(0, 6)}`;
-  };
-
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
   };
 
   const handleGoogleSignup = async () => {
@@ -91,92 +40,134 @@ function Signup() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // Check if user already exists
-      const userRef = doc(db, 'users', user.uid);
-      const userDoc = await getDoc(userRef);
-      if (!userDoc.exists()) {
-        await setDoc(userRef, {
-          email: user.email,
-          points: 20,
-          referralsCount: 0,
-          referralCode: generateReferralCode(user.uid),
-        });
-        logAction(`Google signup: User ${user.uid} received 20 points.`);
-      }
+      await createUserDocument(user);
+      await handleReferral(user.uid);
 
-      // Handle referral if provided
-      if (referralCode) {
-        await handleReferral(referralCode, user.uid);
-      }
-
-      navigate('/'); // Redirect to home after successful signup
+      alert('Google signup successful! You and your referrer both received 20 points.');
+      navigate('/');
     } catch (error) {
+      console.error("Error during Google signup:", error.message);
       setError(error.message);
     }
   };
 
+  const createUserDocument = async (user) => {
+    const userRef = doc(db, 'users', user.uid);
+    try {
+      await setDoc(userRef, {
+        email: user.email,
+        points: 20,
+        referralsCount: 0,
+        referralCode: generateReferralCode(user.uid),
+        pointsLog: [],
+      });
+      console.log("New user document created:", user.uid);
+
+      // Add initial points log entry
+      await updateDoc(userRef, {
+        pointsLog: arrayUnion({
+          type: 'signup',
+          points: 20,
+          description: 'Signup bonus',
+          timestamp: serverTimestamp(),
+        })
+      });
+    } catch (error) {
+      console.error("Error creating user document:", error.message);
+    }
+  };
+
+  const handleReferral = async (userId) => {
+    if (referralCode) {
+      try {
+        const referrerRef = doc(db, 'users', referralCode);
+        const referrerDoc = await getDoc(referrerRef);
+
+        if (referrerDoc.exists()) {
+          const referrerData = referrerDoc.data();
+          const referralUserRef = doc(db, 'users', userId);
+
+          // Update referrer points, count, and log
+          await updateDoc(referrerRef, {
+            points: (referrerData.points || 0) + 20,
+            referralsCount: (referrerData.referralsCount || 0) + 1,
+            pointsLog: arrayUnion({
+              type: 'referral',
+              points: 20,
+              description: `Referral bonus from user ${userId}`,
+              timestamp: serverTimestamp(),
+            })
+          });
+
+          // Update referral (new user) points and log
+          await updateDoc(referralUserRef, {
+            points: 40, // Initial 20 points + 20 referral points
+            pointsLog: arrayUnion({
+              type: 'referred',
+              points: 20,
+              description: `Referral bonus for using referral code of user ${referralCode}`,
+              timestamp: serverTimestamp(),
+            })
+          });
+
+          console.log("Referral points and count updated successfully.");
+          alert('Referral successful! Both users have received 20 points.');
+        } else {
+          console.error("Invalid referral code.");
+          setError('Referral code is invalid.');
+        }
+      } catch (error) {
+        console.error("Error handling referral:", error.message);
+      }
+    }
+  };
+
+  const generateReferralCode = (userId) => {
+    return `REF${userId.substring(0, 6)}`;
+  };
+
   return (
-    <div className="flex items-start justify-center min-h-screen bg-gray-100 pt-4">
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <form className="bg-white p-8 rounded-lg shadow-lg w-96" onSubmit={handleSignup}>
-        <h2 className="mb-6 text-2xl font-bold text-center text-blue-600">Sign Up</h2>
-        
+        <h2 className="text-2xl font-bold mb-6 text-center">Sign Up</h2>
         {error && <p className="text-red-500 mb-4">{error}</p>}
-        
         <input
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full mb-4 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-full p-3 mb-4 border rounded"
           required
-          aria-label="Email"
         />
-        
-        <div className="relative mb-4">
-          <input
-            type={showPassword ? 'text' : 'password'}
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-            required
-            aria-label="Password"
-          />
-          <span onClick={togglePasswordVisibility} className="absolute right-3 top-3 cursor-pointer">
-            {showPassword ? '👁️' : '👁️‍🗨️'}
-          </span>
-        </div>
-
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full p-3 mb-4 border rounded"
+          required
+        />
         <input
           type="text"
           placeholder="Referral Code (optional)"
           value={referralCode}
           onChange={(e) => setReferralCode(e.target.value)}
-          className="w-full mb-4 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-          aria-label="Referral Code"
+          className="w-full p-3 mb-4 border rounded"
         />
-        
-        <button 
-          type="submit" 
-          className={`w-full py-2 mt-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-300 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+        <button
+          type="submit"
+          className={`w-full py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
           disabled={loading}
         >
           {loading ? 'Signing Up...' : 'Sign Up'}
         </button>
-        
         <button
           type="button"
           onClick={handleGoogleSignup}
-          className={`w-full py-2 mt-4 bg-red-600 text-white rounded-md hover:bg-red-700 transition duration-300 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-          disabled={loading}
+          className="w-full py-2 mt-4 bg-red-600 text-white rounded-md hover:bg-red-700"
         >
           Continue with Google
         </button>
-        
-        <p className="mt-4 text-center text-gray-600">
-          Already have an account?{' '}
-          <a href="../desireways/login" className="text-blue-500 hover:text-blue-600 font-semibold">Log in</a>
-        </p>
       </form>
     </div>
   );
