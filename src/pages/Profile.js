@@ -241,6 +241,7 @@ const Profile = () => {
             <p className="text-gray-800"><strong>Referral Code:</strong> {referralCode}</p>
             <p className="text-gray-800"><strong>Referral Link:</strong> <a href={referralLink} className="text-blue-600 hover:underline">{referralLink}</a></p>
             <p className="text-gray-800"><strong>Total Referrals:</strong> {referralsCount}</p>
+            <p className="text-gray-800">Referred Users: {userData.referralData.join(', ')}</p>
             <button
               onClick={handleEditToggle}
               className="bg-blue-500 text-white px-4 py-2 rounded mt-4 hover:bg-blue-600 transition"

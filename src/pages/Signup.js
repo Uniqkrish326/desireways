@@ -60,7 +60,7 @@ function Signup() {
                     const referrerData = referrerDoc.data();
                     const referralUserRef = doc(db, 'users', userId);
 
-                    // Update referrer (User A) points and referral count
+                    // Update referrer (user A) points and referral count
                     const updatedReferrerPoints = (referrerData.points || 0) + 20; // Referrer gets 20 points
                     const updatedReferralCount = (referrerData.referralsCount || 0) + 1; // Increase referral count by 1
 
@@ -74,16 +74,11 @@ function Signup() {
                             description: `Referral bonus from user ${userId}`,
                             timestamp: serverTimestamp(),
                         }),
-                        referralData: arrayUnion(userId) // Store the UID of User B in the referrer's document
+                        referralData: arrayUnion(userId) // Store the UID of User B in User A's referral data
                     });
                     logAction(`Referrer ${referralCode} updated with points: ${updatedReferrerPoints}, referralsCount: ${updatedReferralCount}`);
 
-                    // Update the new user's document to store the referrer UID
-                    await updateDoc(referralUserRef, {
-                        referralData: arrayUnion(referralCode) // Store the referrer UID in the new user's data
-                    });
-
-                    // The new user gets their starting points (20)
+                    // Update the referred user (User B)
                     await updateDoc(referralUserRef, {
                         points: 20, // Only starting points for the new user
                         pointsLog: arrayUnion({
@@ -92,6 +87,7 @@ function Signup() {
                             description: 'Starting points for new signup',
                             timestamp: serverTimestamp(),
                         }),
+                        referralData: arrayUnion(referrerData.referralCode) // Store the referrer’s referral code in User B's document
                     });
                     logAction(`Referral user ${userId} updated with 20 points and points log entry.`);
 
