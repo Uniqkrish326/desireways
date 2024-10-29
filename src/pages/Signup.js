@@ -68,14 +68,6 @@ function Signup() {
         }
     };
 
-    const generateReferralCode = (userId) => {
-        return `REF${userId.substring(0, 6)}`; // Generate a referral code based on user ID
-    };
-
-    const togglePasswordVisibility = () => {
-        setShowPassword(!showPassword); // Toggle password visibility
-    };
-
     const handleGoogleSignup = async () => {
         const provider = new GoogleAuthProvider();
         try {
@@ -86,19 +78,52 @@ function Signup() {
             const userRef = doc(db, 'users', user.uid);
             const userDoc = await getDoc(userRef);
             if (!userDoc.exists()) {
+                const newReferralCode = generateReferralCode(user.uid);
+
+                // Create user document
                 await setDoc(userRef, {
                     email: user.email,
-                    points: 20,
+                    points: 20, // New user starts with 20 points
                     referralsCount: 0,
-                    referralCode: generateReferralCode(user.uid),
+                    referralCode: newReferralCode,
                 });
                 logAction(`Google signup: User ${user.uid} received 20 points.`);
+
+                // Handle referral code
+                if (referralCode) {
+                    const referrerRef = doc(db, 'users', referralCode); // Lookup referrer by their user ID
+                    const referrerDoc = await getDoc(referrerRef);
+
+                    if (referrerDoc.exists()) {
+                        const referrerData = referrerDoc.data();
+
+                        // Update points and referral count for the referrer
+                        await updateDoc(referrerRef, {
+                            points: (referrerData.points || 0) + 20, // Add 20 points to referrer
+                            referralsCount: (referrerData.referralsCount || 0) + 1, // Increment referral count
+                        });
+                        logAction(`Referral by ${user.uid} added 20 points and updated referral count for referrer ${referrerData.referralCode}.`);
+
+                        // Show alert that both users got points
+                        alert(`Both you and ${referrerData.email} have received 20 points for the referral!`);
+                    } else {
+                        console.log('Referral code is invalid.'); // Inform the user if the referral code does not exist
+                    }
+                }
             }
 
             navigate('/'); // Redirect to home after successful signup
         } catch (error) {
             setError(error.message); // Set error message if there's an issue
         }
+    };
+
+    const generateReferralCode = (userId) => {
+        return `REF${userId.substring(0, 6)}`; // Generate a referral code based on user ID
+    };
+
+    const togglePasswordVisibility = () => {
+        setShowPassword(!showPassword); // Toggle password visibility
     };
 
     return (
@@ -129,39 +154,38 @@ function Signup() {
                         aria-label="Password"
                     />
                     <span onClick={togglePasswordVisibility} className="absolute right-3 top-3 cursor-pointer">
-                        {showPassword ? '👁️' : '👁️‍🗨️'}
+                        {showPassword ? '👁️' : '🙈'}
                     </span>
                 </div>
-
+                
                 <input
                     type="text"
-                    placeholder="Referral Code (optional)"
+                    placeholder="Referral Code (if any)"
                     value={referralCode}
                     onChange={(e) => setReferralCode(e.target.value)}
                     className="w-full mb-4 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
                     aria-label="Referral Code"
                 />
                 
-                <button 
-                    type="submit" 
-                    className={`w-full py-2 mt-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-300 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                <button
+                    type="submit"
                     disabled={loading}
+                    className="w-full bg-blue-600 text-white p-3 rounded-md hover:bg-blue-700 transition duration-300"
                 >
-                    {loading ? 'Signing Up...' : 'Sign Up'}
+                    Sign Up
                 </button>
                 
                 <button
                     type="button"
                     onClick={handleGoogleSignup}
-                    className={`w-full py-2 mt-4 bg-red-600 text-white rounded-md hover:bg-red-700 transition duration-300 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    disabled={loading}
+                    className="w-full bg-red-600 text-white p-3 rounded-md hover:bg-red-700 transition duration-300 mt-4"
                 >
                     Continue with Google
                 </button>
                 
-                <p className="mt-4 text-center text-gray-600">
+                <p className="mt-4 text-center">
                     Already have an account?{' '}
-                    <a href="../desireways/login" className="text-blue-600 hover:underline">
+                    <a href="/login" className="text-blue-600 hover:underline">
                         Log In
                     </a>
                 </p>
