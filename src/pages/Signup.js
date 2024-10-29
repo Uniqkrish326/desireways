@@ -60,10 +60,11 @@ function Signup() {
           const referrerData = referrerDoc.data();
           const referralUserRef = doc(db, 'users', userId);
 
-          // Update referrer (user A) points and referral count with logs
-          const updatedReferrerPoints = (referrerData.points || 0) + 20;
-          const updatedReferralCount = (referrerData.referralsCount || 0) + 1;
+          // Update referrer (user A) points and referral count
+          const updatedReferrerPoints = (referrerData.points || 0) + 20; // Referrer gets 20 points
+          const updatedReferralCount = (referrerData.referralsCount || 0) + 1; // Increase referral count by 1
 
+          // Update the referrer document
           await updateDoc(referrerRef, {
             points: updatedReferrerPoints,
             referralsCount: updatedReferralCount,
@@ -76,19 +77,19 @@ function Signup() {
           });
           logAction(`Referrer ${referralCode} updated with points: ${updatedReferrerPoints}, referralsCount: ${updatedReferralCount}`);
 
-          // Update new user (user B) points and points log
+          // The new user gets their starting points (20)
           await updateDoc(referralUserRef, {
-            points: 40, // Starting points + referral bonus
+            points: 20, // Only starting points for the new user
             pointsLog: arrayUnion({
-              type: 'referred',
+              type: 'new_signup',
               points: 20,
-              description: `Referral bonus for using referral code of ${referralCode}`,
+              description: 'Starting points for new signup',
               timestamp: serverTimestamp(),
             }),
           });
-          logAction(`Referral user ${userId} updated with 40 points and points log entry.`);
+          logAction(`Referral user ${userId} updated with 20 points and points log entry.`);
 
-          alert('Referral successful! Both users have received 20 points.');
+          alert('Referral successful! Both users have received points.');
         } else {
           setError('Referral code is invalid.');
           console.error("Invalid referral code.");
