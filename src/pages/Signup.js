@@ -1,6 +1,7 @@
+// src/pages/Signup.js
 import React, { useState } from 'react';
 import { auth } from '../firebase';
-import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, sendEmailVerification } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { doc, setDoc, getDoc, updateDoc, arrayUnion, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -23,9 +24,20 @@ function Signup() {
     setError('');
     setLoading(true);
 
+    // Validate email to allow only Gmail accounts
+    if (!validateEmail(email)) {
+      setError('Only Gmail accounts are allowed.');
+      setLoading(false);
+      return;
+    }
+
     try {
+      // Create user account with email and password
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+
+      // Send email verification
+      await sendEmailVerification(user);
 
       // Create user document for the new user
       const userRef = doc(db, 'users', user.uid);
@@ -41,12 +53,17 @@ function Signup() {
       // Handle referral code
       await handleReferral(user.uid); // Pass the new user's ID to handle referral
 
-      navigate('/'); // Redirect to home after successful signup
+      alert('Signup successful! Please verify your email to log in.');
+      navigate('/login'); // Redirect to login after successful signup
     } catch (error) {
       setError(error.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const validateEmail = (email) => {
+    return email.endsWith('@gmail.com'); // Only allow Gmail accounts
   };
 
   const handleReferral = async (userId) => {
@@ -129,10 +146,14 @@ function Signup() {
         logAction(`Google signup: User ${user.uid} received 20 points.`);
       }
 
+      // Send email verification
+      await sendEmailVerification(user);
+
       // Handle referral after Google signup
       await handleReferral(user.uid); // Pass the new user's ID to handle referral
 
-      navigate('/'); // Redirect to home after successful signup
+      alert('Signup successful! Please verify your email to log in.');
+      navigate('/login'); // Redirect to home after successful signup
     } catch (error) {
       setError(error.message);
     }
