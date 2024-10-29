@@ -13,7 +13,6 @@ import Signup from './pages/Signup';
 import Wishlist from './pages/Wishlist';
 import Profile from './pages/Profile'; // Import the Profile component
 import ProtectedRoute from './ProtectedRoute';
-import NotFound from './pages/NotFound'; // Import your NotFound component
 
 function App() {
   const [user, setUser] = useState(null);
@@ -27,14 +26,14 @@ function App() {
   }, []);
 
   return (
-    <Router>
+    <Router basename={process.env.PUBLIC_URL}>
       <div>
         <Header />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-
+          
           {/* Protected routes */}
           <Route
             path="/add-product"
@@ -62,19 +61,18 @@ function App() {
           />
           <Route
             path="/products/:category"
-            element={<ModelList />} // Allow direct access to ModelList
+            element={<ModelList />}
           />
           <Route
             path="/products/:category/:model"
-            element={<FilteredProductList />} // Allow direct access to FilteredProductList
+            element={<FilteredProductList />}
           />
           <Route
             path="/products/:category/:model/:productId"
-            element={<ProductDetail />} // Allow direct access to ProductDetail
+            element={<ProductDetail />}
           />
-
-          {/* Catch-all route for 404 */}
-          <Route path="*" element={<NotFound />} />
+          {/* Catch-all route - Any unmatched path will redirect to Home */}
+          <Route path="*" element={<Home />} />
         </Routes>
       </div>
     </Router>
