@@ -18,6 +18,7 @@ function Signup() {
         console.log(`Log: ${message}`);
     };
 
+    // Function to handle email signup
     const handleSignup = async (e) => {
         e.preventDefault();
         setError('');
@@ -30,6 +31,8 @@ function Signup() {
             // Create user document
             const userRef = doc(db, 'users', user.uid);
             const newReferralCode = generateReferralCode(user.uid);
+
+            // Add the new user with default points and referral code
             await setDoc(userRef, {
                 email: user.email,
                 points: 20, // New user starts with 20 points
@@ -38,26 +41,9 @@ function Signup() {
             });
             logAction(`User ${user.uid} signed up and received 20 points.`);
 
-            // Handle referral code
+            // Handle referral code if provided
             if (referralCode) {
-                const referrerRef = doc(db, 'users', referralCode); // Lookup referrer by their user ID
-                const referrerDoc = await getDoc(referrerRef);
-
-                if (referrerDoc.exists()) {
-                    const referrerData = referrerDoc.data();
-
-                    // Update points and referral count for the referrer
-                    await updateDoc(referrerRef, {
-                        points: (referrerData.points || 0) + 20, // Add 20 points to referrer
-                        referralsCount: (referrerData.referralsCount || 0) + 1, // Increment referral count
-                    });
-                    logAction(`Referral by ${user.uid} added 20 points and updated referral count for referrer ${referrerData.referralCode}.`);
-
-                    // Show alert that both users got points
-                    alert(`Both you and ${referrerData.email} have received 20 points for the referral!`);
-                } else {
-                    setError('Referral code is invalid.'); // Inform the user if the referral code does not exist
-                }
+                await handleReferral(referralCode, user.uid);
             }
 
             navigate('/'); // Redirect to home after successful signup
@@ -68,6 +54,7 @@ function Signup() {
         }
     };
 
+    // Function to handle Google signup
     const handleGoogleSignup = async () => {
         const provider = new GoogleAuthProvider();
         try {
@@ -89,26 +76,9 @@ function Signup() {
                 });
                 logAction(`Google signup: User ${user.uid} received 20 points.`);
 
-                // Handle referral code
+                // Handle referral code if provided
                 if (referralCode) {
-                    const referrerRef = doc(db, 'users', referralCode); // Lookup referrer by their user ID
-                    const referrerDoc = await getDoc(referrerRef);
-
-                    if (referrerDoc.exists()) {
-                        const referrerData = referrerDoc.data();
-
-                        // Update points and referral count for the referrer
-                        await updateDoc(referrerRef, {
-                            points: (referrerData.points || 0) + 20, // Add 20 points to referrer
-                            referralsCount: (referrerData.referralsCount || 0) + 1, // Increment referral count
-                        });
-                        logAction(`Referral by ${user.uid} added 20 points and updated referral count for referrer ${referrerData.referralCode}.`);
-
-                        // Show alert that both users got points
-                        alert(`Both you and ${referrerData.email} have received 20 points for the referral!`);
-                    } else {
-                        console.log('Referral code is invalid.'); // Inform the user if the referral code does not exist
-                    }
+                    await handleReferral(referralCode, user.uid);
                 }
             }
 
@@ -118,6 +88,35 @@ function Signup() {
         }
     };
 
+    // Function to handle the referral process
+    const handleReferral = async (referralCode, newUserId) => {
+        try {
+            const referrerRef = doc(db, 'users', referralCode); // Lookup referrer by their user ID
+            const referrerDoc = await getDoc(referrerRef);
+
+            if (referrerDoc.exists()) {
+                const referrerData = referrerDoc.data();
+
+                // Update points and referral count for the referrer
+                await updateDoc(referrerRef, {
+                    points: (referrerData.points || 0) + 20, // Add 20 points to referrer
+                    referralsCount: (referrerData.referralsCount || 0) + 1, // Increment referral count
+                });
+                logAction(`Referral by ${newUserId} added 20 points and updated referral count for referrer ${referrerData.referralCode}.`);
+
+                // Show alert that both users got points
+                alert(`Both you and ${referrerData.email} have received 20 points for the referral!`);
+            } else {
+                console.log('Referral code is invalid.'); // Inform the user if the referral code does not exist
+                alert('Referral code is invalid.');
+            }
+        } catch (error) {
+            console.error('Error updating referrer:', error);
+            setError('Error processing referral.');
+        }
+    };
+
+    // Function to generate a unique referral code
     const generateReferralCode = (userId) => {
         return `REF${userId.substring(0, 6)}`; // Generate a referral code based on user ID
     };
