@@ -13,15 +13,16 @@ import Signup from './pages/Signup';
 import Wishlist from './pages/Wishlist';
 import Profile from './pages/Profile';
 import ProtectedRoute from './ProtectedRoute';
+import NotFound from './pages/NotFound'; 
 
 function App() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+      setUser(user); // Set user state to the logged-in user or null
     });
-    return () => unsubscribe();
+    return () => unsubscribe(); // Clean up the listener on unmount
   }, []);
 
   return (
@@ -32,13 +33,36 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignupWithReferral />} />
-          <Route path="/add-product" element={<ProtectedRoute user={user}><ModelList /></ProtectedRoute>} />
-          <Route path="/wishlist" element={<ProtectedRoute user={user}><Wishlist /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute user={user}><Profile /></ProtectedRoute>} />
+
+          {/* Protected routes */}
+          <Route
+            path="/add-product"
+            element={
+              <ProtectedRoute user={user}>
+                <ModelList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/wishlist"
+            element={
+              <ProtectedRoute user={user}>
+                <Wishlist />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute user={user}>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/products/:category" element={<ModelList />} />
           <Route path="/products/:category/:model" element={<FilteredProductList />} />
           <Route path="/products/:category/:model/:productId" element={<ProductDetail />} />
-          <Route path="*" element={<Home />} />
+          <Route path="*" element={<NotFound />} />{/* Catch-all for unknown routes */}
         </Routes>
       </div>
     </Router>
@@ -57,8 +81,9 @@ function SignupWithReferral() {
     const ref = params.get('ref');
     if (ref) {
       setReferralCode(ref);
-      sessionStorage.setItem('referralCode', ref);
+      sessionStorage.setItem('referralCode', ref); // Store referral code in sessionStorage
     } else {
+      // Retrieve from sessionStorage if URL doesn't have it
       const storedRef = sessionStorage.getItem('referralCode');
       setReferralCode(storedRef);
     }
