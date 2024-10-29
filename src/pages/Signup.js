@@ -6,163 +6,163 @@ import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 function Signup() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [referralCode, setReferralCode] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const navigate = useNavigate();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [referralCode, setReferralCode] = useState('');
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const navigate = useNavigate();
 
-  const logAction = (message) => {
-    console.log(`Log: ${message}`);
-  };
+    const logAction = (message) => {
+        console.log(`Log: ${message}`);
+    };
 
-  const handleSignup = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+    const handleSignup = async (e) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
 
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
 
-      // Create user document
-      const userRef = doc(db, 'users', user.uid);
-      await setDoc(userRef, {
-        email: user.email,
-        points: 20,
-        referralsCount: 0,
-        referralCode: generateReferralCode(user.uid),
-      });
-      logAction(`User ${user.uid} signed up and received 20 points.`);
+            // Create user document
+            const userRef = doc(db, 'users', user.uid);
+            const newReferralCode = generateReferralCode(user.uid);
+            await setDoc(userRef, {
+                email: user.email,
+                points: 20, // New user starts with 20 points
+                referralsCount: 0,
+                referralCode: newReferralCode,
+            });
+            logAction(`User ${user.uid} signed up and received 20 points.`);
 
-      // Handle referral code
-      if (referralCode) {
-        const referrerRef = doc(db, 'users', referralCode);
-        const referrerDoc = await getDoc(referrerRef);
+            // Handle referral code
+            if (referralCode) {
+                const referrerRef = doc(db, 'users', referralCode); // Adjusted to look up by referral code
+                const referrerDoc = await getDoc(referrerRef);
 
-        if (referrerDoc.exists()) {
-          const referrerData = referrerDoc.data();
-          const updatedPoints = (referrerData.points || 0) + 20;
-          const updatedReferralsCount = (referrerData.referralsCount || 0) + 1;
+                if (referrerDoc.exists()) {
+                    const referrerData = referrerDoc.data();
+                    
+                    // Update points and referral count for the referrer
+                    await updateDoc(referrerRef, {
+                        points: (referrerData.points || 0) + 20, // Add 20 points to referrer
+                        referralsCount: (referrerData.referralsCount || 0) + 1, // Increment referral count
+                    });
+                    logAction(`Referral by ${user.uid} added 20 points and updated referral count for referrer ${referralCode}.`);
+                } else {
+                    setError('Referral code is invalid.'); // Inform the user if the referral code does not exist
+                }
+            }
 
-          await updateDoc(referrerRef, {
-            points: updatedPoints,
-            referralsCount: updatedReferralsCount,
-          });
-          logAction(`Referral by ${user.uid} added 20 points and updated referral count for referrer ${referralCode}.`);
-        } else {
-          setError('Referral code is invalid.');
+            navigate('/'); // Redirect to home after successful signup
+        } catch (error) {
+            setError(error.message); // Set error message if there's an issue
+        } finally {
+            setLoading(false);
         }
-      }
+    };
 
-      navigate('/'); // Redirect to home after successful signup
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const generateReferralCode = (userId) => {
+        return `REF${userId.substring(0, 6)}`; // Generate a referral code based on user ID
+    };
 
-  const generateReferralCode = (userId) => {
-    return `REF${userId.substring(0, 6)}`;
-  };
+    const togglePasswordVisibility = () => {
+        setShowPassword(!showPassword); // Toggle password visibility
+    };
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
+    const handleGoogleSignup = async () => {
+        const provider = new GoogleAuthProvider();
+        try {
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
 
-  const handleGoogleSignup = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
+            // Check if user already exists
+            const userRef = doc(db, 'users', user.uid);
+            const userDoc = await getDoc(userRef);
+            if (!userDoc.exists()) {
+                await setDoc(userRef, {
+                    email: user.email,
+                    points: 20,
+                    referralsCount: 0,
+                    referralCode: generateReferralCode(user.uid),
+                });
+                logAction(`Google signup: User ${user.uid} received 20 points.`);
+            }
 
-      // Check if user already exists
-      const userRef = doc(db, 'users', user.uid);
-      const userDoc = await getDoc(userRef);
-      if (!userDoc.exists()) {
-        await setDoc(userRef, {
-          email: user.email,
-          points: 20,
-          referralsCount: 0,
-          referralCode: generateReferralCode(user.uid),
-        });
-        logAction(`Google signup: User ${user.uid} received 20 points.`);
-      }
+            navigate('/'); // Redirect to home after successful signup
+        } catch (error) {
+            setError(error.message); // Set error message if there's an issue
+        }
+    };
 
-      navigate('/'); // Redirect to home after successful signup
-    } catch (error) {
-      setError(error.message);
-    }
-  };
+    return (
+        <div className="flex items-start justify-center min-h-screen bg-gray-100 pt-4">
+            <form className="bg-white p-8 rounded-lg shadow-lg w-96" onSubmit={handleSignup}>
+                <h2 className="mb-6 text-2xl font-bold text-center text-blue-600">Sign Up</h2>
+                
+                {error && <p className="text-red-500 mb-4">{error}</p>}
+                
+                <input
+                    type="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full mb-4 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    required
+                    aria-label="Email"
+                />
+                
+                <div className="relative mb-4">
+                    <input
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        required
+                        aria-label="Password"
+                    />
+                    <span onClick={togglePasswordVisibility} className="absolute right-3 top-3 cursor-pointer">
+                        {showPassword ? '👁️' : '👁️‍🗨️'}
+                    </span>
+                </div>
 
-  return (
-    <div className="flex items-start justify-center min-h-screen bg-gray-100 pt-4">
-      <form className="bg-white p-8 rounded-lg shadow-lg w-96" onSubmit={handleSignup}>
-        <h2 className="mb-6 text-2xl font-bold text-center text-blue-600">Sign Up</h2>
-        
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-        
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full mb-4 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-          required
-          aria-label="Email"
-        />
-        
-        <div className="relative mb-4">
-          <input
-            type={showPassword ? 'text' : 'password'}
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-            required
-            aria-label="Password"
-          />
-          <span onClick={togglePasswordVisibility} className="absolute right-3 top-3 cursor-pointer">
-            {showPassword ? '👁️' : '👁️‍🗨️'}
-          </span>
+                <input
+                    type="text"
+                    placeholder="Referral Code (optional)"
+                    value={referralCode}
+                    onChange={(e) => setReferralCode(e.target.value)}
+                    className="w-full mb-4 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    aria-label="Referral Code"
+                />
+                
+                <button 
+                    type="submit" 
+                    className={`w-full py-2 mt-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-300 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    disabled={loading}
+                >
+                    {loading ? 'Signing Up...' : 'Sign Up'}
+                </button>
+                
+                <button
+                    type="button"
+                    onClick={handleGoogleSignup}
+                    className={`w-full py-2 mt-4 bg-red-600 text-white rounded-md hover:bg-red-700 transition duration-300 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    disabled={loading}
+                >
+                    Continue with Google
+                </button>
+                
+                <p className="mt-4 text-center text-gray-600">
+                    Already have an account?{' '}
+                    <a href="../desireways/login" className="text-blue-500 hover:text-blue-600 font-semibold">Log in</a>
+                </p>
+            </form>
         </div>
-
-        <input
-          type="text"
-          placeholder="Referral Code (optional)"
-          value={referralCode}
-          onChange={(e) => setReferralCode(e.target.value)}
-          className="w-full mb-4 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-          aria-label="Referral Code"
-        />
-        
-        <button 
-          type="submit" 
-          className={`w-full py-2 mt-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-300 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-          disabled={loading}
-        >
-          {loading ? 'Signing Up...' : 'Sign Up'}
-        </button>
-        
-        <button
-          type="button"
-          onClick={handleGoogleSignup}
-          className={`w-full py-2 mt-4 bg-red-600 text-white rounded-md hover:bg-red-700 transition duration-300 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-          disabled={loading}
-        >
-          Continue with Google
-        </button>
-        
-        <p className="mt-4 text-center text-gray-600">
-          Already have an account?{' '}
-          <a href="../desireways/login" className="text-blue-500 hover:text-blue-600 font-semibold">Log in</a>
-        </p>
-      </form>
-    </div>
-  );
+    );
 }
 
 export default Signup;
