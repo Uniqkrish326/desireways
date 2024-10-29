@@ -38,7 +38,7 @@ const Profile = () => {
           });
           const generatedReferralCode = data.referralCode || generateReferralCode(user.uid);
           setReferralCode(generatedReferralCode);
-          setReferralLink(`https://uniqkrish326.github.io/desireways/signup?ref=${generatedReferralCode}`);
+          setReferralLink(`https://uniqkrish326.github.io/desireways/#/signup?ref=${generatedReferralCode}`);
           setReferralsCount(data.referralsCount || 0);
         }
         setLoading(false);
