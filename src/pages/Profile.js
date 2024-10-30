@@ -15,6 +15,7 @@ const Profile = () => {
   });
   const [referralCode, setReferralCode] = useState('');
   const [referralLink, setReferralLink] = useState('');
+  // eslint-disable-next-line
   const [referralsCount, setReferralsCount] = useState(0);
   const [lastUpdated, setLastUpdated] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -240,10 +241,7 @@ const Profile = () => {
             <p className="text-gray-800"><strong>Points:</strong> {userData?.points || 0}</p>
             <p className="text-gray-800"><strong>Referral Code:</strong> {referralCode}</p>
             <p className="text-gray-800"><strong>Referral Link:</strong> <a href={referralLink} className="text-blue-600 hover:underline">{referralLink}</a></p>
-            <p className="text-gray-800"><strong>Total Referrals:</strong> {referralsCount}</p>
-            <p className="text-gray-800">
-              <strong>Referred Users:</strong> {userData?.referralData && userData.referralData.length > 0 ? userData.referralData.join(', ') : 'None'}
-            </p>
+            {/* Removed Total Referrals and Referred Users sections */}
             <button
               onClick={handleEditToggle}
               className="bg-blue-500 text-white px-4 py-2 rounded mt-4 hover:bg-blue-600 transition"

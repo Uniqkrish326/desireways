@@ -14,7 +14,7 @@ import Wishlist from './pages/Wishlist';
 import Profile from './pages/Profile';
 import ProtectedRoute from './ProtectedRoute';
 import NotFound from './pages/NotFound'; 
-
+import AdminDashboard from './pages/Admin'; 
 function App() {
   const [user, setUser] = useState(null);
 
@@ -32,6 +32,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/signup" element={<SignupWithReferral />} />
 
           {/* Protected routes */}
