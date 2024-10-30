@@ -3,13 +3,11 @@ import React, { useState } from 'react';
 import { auth } from '../firebase';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
-import { doc, updateDoc, arrayUnion } from 'firebase/firestore'; // Import arrayUnion here
+import { doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
-// Function to fetch user details based on IP
 const getUserDetails = async () => {
     try {
-        // This API should return the user's IP address details
         const response = await fetch('https://ipapi.co/json/');
         if (!response.ok) throw new Error('Failed to fetch IP details');
         const data = await response.json();
@@ -23,9 +21,8 @@ const getUserDetails = async () => {
             userAgent: navigator.userAgent || 'Unknown User Agent',
         };
     } catch (error) {
-        // Handle error gracefully without showing it to the user
         console.error('Error fetching user details:', error);
-        return null; // Return null to signify failure in fetching user details
+        return null;
     }
 };
 
@@ -47,29 +44,30 @@ function Login() {
             const user = userCredential.user;
 
             // Check if user's email is verified
-            if (!user.emailVerified) {
+            const userDoc = await getDoc(doc(db, 'users', user.email)); // Fetch the user document
+            if (userDoc.exists() && !userDoc.data().isVerified) {
                 setError('Please verify your email before logging in.');
                 await auth.signOut(); // Sign the user out if the email is not verified
                 setLoading(false);
                 return;
             }
 
-            // Get user details (IP, location, and device info)
+            // Get user details
             const userDetails = await getUserDetails();
 
             // Prepare logs data
-            const loginTimestamp = new Date().toISOString(); // Current timestamp
+            const loginTimestamp = new Date().toISOString();
             const logsData = {
-                lastLoginIP: userDetails?.ipAddress || "Unknown IP", // Fallback to a default value
-                lastLoginTimestamp: loginTimestamp || "Unknown Timestamp", // Fallback to a default value
-                location: userDetails?.location || { city: "Unknown", region: "Unknown", country: "Unknown" }, // Fallback
-                userAgent: userDetails?.userAgent || "Unknown User Agent", // Fallback
+                lastLoginIP: userDetails?.ipAddress || "Unknown IP",
+                lastLoginTimestamp: loginTimestamp || "Unknown Timestamp",
+                location: userDetails?.location || { city: "Unknown", region: "Unknown", country: "Unknown" },
+                userAgent: userDetails?.userAgent || "Unknown User Agent",
             };
 
             // Update Firestore with login logs
-            const userRef = doc(db, 'users', user.uid); // Ensure you have a collection named 'users'
+            const userRef = doc(db, 'users', user.email);
             await updateDoc(userRef, {
-                logs: arrayUnion(logsData), // Ensure `logs` is an array in Firestore
+                logs: arrayUnion(logsData),
             });
 
             navigate('/'); // Redirect to home if verified
@@ -87,28 +85,29 @@ function Login() {
             const user = result.user;
 
             // Check if user's email is verified
-            if (!user.emailVerified) {
+            const userDoc = await getDoc(doc(db, 'users', user.email));
+            if (userDoc.exists() && !userDoc.data().isVerified) {
                 setError('Please verify your email before logging in.');
-                await auth.signOut(); // Sign the user out if the email is not verified
+                await auth.signOut();
                 return;
             }
 
-            // Get user details (IP, location, and device info)
+            // Get user details
             const userDetails = await getUserDetails();
 
             // Prepare logs data
-            const loginTimestamp = new Date().toISOString(); // Current timestamp
+            const loginTimestamp = new Date().toISOString();
             const logsData = {
-                lastLoginIP: userDetails?.ipAddress || "Unknown IP", // Fallback to a default value
-                lastLoginTimestamp: loginTimestamp || "Unknown Timestamp", // Fallback to a default value
-                location: userDetails?.location || { city: "Unknown", region: "Unknown", country: "Unknown" }, // Fallback
-                userAgent: userDetails?.userAgent || "Unknown User Agent", // Fallback
+                lastLoginIP: userDetails?.ipAddress || "Unknown IP",
+                lastLoginTimestamp: loginTimestamp || "Unknown Timestamp",
+                location: userDetails?.location || { city: "Unknown", region: "Unknown", country: "Unknown" },
+                userAgent: userDetails?.userAgent || "Unknown User Agent",
             };
 
             // Update Firestore with login logs
-            const userRef = doc(db, 'users', user.uid); // Ensure you have a collection named 'users'
+            const userRef = doc(db, 'users', user.email);
             await updateDoc(userRef, {
-                logs: arrayUnion(logsData), // Ensure `logs` is an array in Firestore
+                logs: arrayUnion(logsData),
             });
 
             navigate('/'); // Redirect to home if verified
@@ -137,9 +136,9 @@ function Login() {
                     required
                 />
                 
-                <div className="relative mb-4"> {/* Wrapper for password input and toggle */}
+                <div className="relative mb-4">
                     <input
-                        type={showPassword ? 'text' : 'password'} // Toggle between text and password
+                        type={showPassword ? 'text' : 'password'}
                         placeholder="Password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -147,7 +146,7 @@ function Login() {
                         required
                     />
                     <span onClick={togglePasswordVisibility} className="absolute right-3 top-3 cursor-pointer">
-                        {showPassword ? '👁️' : '👁️‍🗨️'} {/* Eye icon to show/hide password */}
+                        {showPassword ? '👁️' : '👁️‍🗨️'}
                     </span>
                 </div>
                 
@@ -172,7 +171,6 @@ function Login() {
                     Don't have an account?{' '}
                     <a href="../desireways/signup" className="text-blue-500 hover:text-blue-600 font-semibold">Sign up</a>
                 </p>
-  
             </form>
         </div>
     );

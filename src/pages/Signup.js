@@ -4,7 +4,7 @@ import { auth } from '../firebase';
 import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, sendEmailVerification } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase'; // Import Firestore database
+import { db } from '../firebase';
 
 function Signup() {
   const [email, setEmail] = useState('');
@@ -59,9 +59,10 @@ function Signup() {
             type: 'new_signup',
             points: 20,
             description: 'Starting points for new signup',
-            timestamp: new Date().toISOString(), // Use a regular timestamp here
+            timestamp: new Date().toISOString(),
           },
         ],
+        isVerified: false, // Set this to false initially
       });
       logAction(`User ${user.uid} signed up and received 20 points.`);
 
@@ -113,9 +114,10 @@ function Signup() {
             type: 'new_signup',
             points: 20,
             description: 'Starting points for new signup via Google',
-            timestamp: new Date().toISOString(), // Use a regular timestamp here
+            timestamp: new Date().toISOString(),
           },
         ],
+        isVerified: false, // Set this to false initially
       });
       logAction(`Google signup: User ${user.uid} received 20 points.`);
 
