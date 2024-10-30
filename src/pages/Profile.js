@@ -32,7 +32,7 @@ const Profile = () => {
           setUserData(data);
           setProfileDetails({
             profileName: data.profileName || '',
-            dateOfBirth: data.dateOfBirth ? formatDate(data.dateOfBirth) : '', // Use formatDate function
+            dateOfBirth: data.dateOfBirth ? formatDate(data.dateOfBirth) : '',
             phoneNumber: data.phoneNumber || '',
             points: data.points || 0,
           });
@@ -72,7 +72,7 @@ const Profile = () => {
 
     // Update the user's document in Firestore
     await updateDoc(userRef, {
-      pointsLog: arrayUnion(newLog), // Use arrayUnion to add to the array
+      pointsLog: arrayUnion(newLog),
     });
   };
 
@@ -88,20 +88,20 @@ const Profile = () => {
 
     // Update the user's document in Firestore
     await updateDoc(userRef, {
-      profileLogs: arrayUnion(newLog), // Use arrayUnion to add to the array
+      profileLogs: arrayUnion(newLog),
     });
 
     // Store current profile data
     const currentProfile = {
       profileName: profileDetails.profileName,
-      dateOfBirth: Timestamp.fromDate(new Date(profileDetails.dateOfBirth)), // Firestore timestamp
+      dateOfBirth: Timestamp.fromDate(new Date(profileDetails.dateOfBirth)),
       phoneNumber: profileDetails.phoneNumber,
       timestamp: new Date().toISOString(),
     };
 
     // Store the current profile data in Firestore
     await updateDoc(userRef, {
-      profileData: arrayUnion(currentProfile), // Use arrayUnion to add to the array
+      profileData: arrayUnion(currentProfile),
     });
   };
 
@@ -120,14 +120,14 @@ const Profile = () => {
       const userRef = doc(db, 'users', user.uid);
       const userDoc = await getDoc(userRef);
 
-      const currentPoints = userDoc.exists() && typeof userDoc.data().points === 'number' 
-        ? userDoc.data().points 
+      const currentPoints = userDoc.exists() && typeof userDoc.data().points === 'number'
+        ? userDoc.data().points
         : 0;
       const isProfileFilled = userDoc.exists() ? userDoc.data().profileFilled : false;
 
       // Check if date of birth is required
       if (!profileDetails.dateOfBirth) {
-        alert("Date of Birth is required."); // Instead of throwing an error, notify the user
+        alert("Date of Birth is required.");
         return;
       }
 
@@ -135,7 +135,7 @@ const Profile = () => {
         // Log points and profile update for first-time profile fill
         await updateDoc(userRef, {
           ...profileDetails,
-          dateOfBirth: Timestamp.fromDate(new Date(profileDetails.dateOfBirth)), // Firestore timestamp
+          dateOfBirth: Timestamp.fromDate(new Date(profileDetails.dateOfBirth)),
           points: currentPoints + 50,
           profileFilled: true,
           referralCode: generateReferralCode(user.uid), // Generate and store referral code
@@ -154,7 +154,7 @@ const Profile = () => {
         await logProfileUpdate(user.uid, previousData);
         await updateDoc(userRef, {
           ...profileDetails,
-          dateOfBirth: Timestamp.fromDate(new Date(profileDetails.dateOfBirth)), // Firestore timestamp
+          dateOfBirth: Timestamp.fromDate(new Date(profileDetails.dateOfBirth)),
         });
       }
 
@@ -163,11 +163,11 @@ const Profile = () => {
       setUserData((prev) => ({
         ...prev,
         ...profileDetails,
-        dateOfBirth: Timestamp.fromDate(new Date(profileDetails.dateOfBirth)), // Update local state
+        dateOfBirth: Timestamp.fromDate(new Date(profileDetails.dateOfBirth)),
         points: isProfileFilled ? currentPoints : currentPoints + 50,
       }));
     } catch (error) {
-      console.error("Error saving profile:", error); // Log error for debugging
+      console.error("Error saving profile:", error);
       alert("An error occurred while saving your profile. Please try again later.");
     }
   };
@@ -241,7 +241,9 @@ const Profile = () => {
             <p className="text-gray-800"><strong>Referral Code:</strong> {referralCode}</p>
             <p className="text-gray-800"><strong>Referral Link:</strong> <a href={referralLink} className="text-blue-600 hover:underline">{referralLink}</a></p>
             <p className="text-gray-800"><strong>Total Referrals:</strong> {referralsCount}</p>
-            <p className="text-gray-800">Referred Users: {userData.referralData.join(', ')}</p>
+            <p className="text-gray-800">
+              <strong>Referred Users:</strong> {userData?.referralData && userData.referralData.length > 0 ? userData.referralData.join(', ') : 'None'}
+            </p>
             <button
               onClick={handleEditToggle}
               className="bg-blue-500 text-white px-4 py-2 rounded mt-4 hover:bg-blue-600 transition"
