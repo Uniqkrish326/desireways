@@ -28,6 +28,7 @@ const Signup = () => {
           const referrerId = referrerDoc.id; // Get User A's UID
 
           // Step 4: Update User A's document
+          // Create or update the referrer document
           await updateDoc(doc(db, 'users', referrerId), {
             referralsCount: increment(1), // Increment the count
             referralData: arrayUnion(newUser.uid), // Add User B's UID to User A's referral list
@@ -41,7 +42,7 @@ const Signup = () => {
       }
 
       // Step 5: Create User B's document
-      await setDoc(doc(db, 'users', newUser.uid), {
+      const userDoc = {
         profileName: email.split('@')[0], // or another method to set username
         dateOfBirth: null, // Initialize as null
         phoneNumber: '',
@@ -49,8 +50,9 @@ const Signup = () => {
         referralCode: generateReferralCode(newUser.uid), // Generate a new referral code for User B
         referralsCount: 0,
         referralData: [], // Initialize as empty
-      });
+      };
 
+      await setDoc(doc(db, 'users', newUser.uid), userDoc);
       alert(`User profile for ${newUser.uid} created successfully.`); // Alert for profile creation
     } catch (error) {
       console.error("Error during signup:", error);
