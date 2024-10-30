@@ -1,98 +1,83 @@
 // Signup.js
 import React, { useState } from 'react';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc, updateDoc, getDocs, query, where, collection, arrayUnion, increment } from 'firebase/firestore';
-import { auth, db } from '../firebase'; // Adjust the path as necessary
+import { auth, db } from '../firebase';
+import { setDoc, doc, getDoc, updateDoc, arrayUnion, increment } from 'firebase/firestore';
 
 const Signup = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [referralCode, setReferralCode] = useState('');
 
-  // Function to generate a referral code
-  const generateReferralCode = (userId) => `REF${userId.substring(0, 6)}`;
-
-  const handleSignup = async () => {
+  const handleSignup = async (e) => {
+    e.preventDefault();
     try {
-      // Step 1: Create the user in Firebase Authentication
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const newUser = userCredential.user;
-      alert(`User ${newUser.uid} signed up successfully.`); // Alert for successful signup
+      // Create a new user with email and password
+      const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+      const user = userCredential.user;
 
-      // Step 2: Check if the referral code is provided
+      // Generate a referral code for the new user
+      const generatedReferralCode = `REF${user.uid.substring(0, 6)}`;
+
+      // Create user document in Firestore
+      const userDoc = doc(db, 'users', user.uid);
+      await setDoc(userDoc, {
+        profileName: '',
+        email,
+        points: 0,
+        referralCode: generatedReferralCode,
+        referralsCount: 0,
+        referralData: [],
+      });
+
+      // Check if a referral code was provided
       if (referralCode) {
-        // Step 3: Look up the user with this referral code
-        const referrerQuery = await getDocs(query(collection(db, 'users'), where('referralCode', '==', referralCode)));
-        if (!referrerQuery.empty) {
-          const referrerDoc = referrerQuery.docs[0];
-          const referrerId = referrerDoc.id; // Get User A's UID
-
-          // Step 4: Update User A's document
-          // Create or update the referrer document
-          await updateDoc(doc(db, 'users', referrerId), {
-            referralsCount: increment(1), // Increment the count
-            referralData: arrayUnion(newUser.uid), // Add User B's UID to User A's referral list
+        const referrerDoc = doc(db, 'users', referralCode);
+        const referrerSnap = await getDoc(referrerDoc);
+        if (referrerSnap.exists()) {
+          // Update the referrer document with User B's UID
+          await updateDoc(referrerDoc, {
+            referralsCount: increment(1), // Increment the referral count
+            referralData: arrayUnion(user.uid), // Add User B's UID to the referrer
           });
-          alert(`User ${newUser.uid} referred successfully to User A (${referrerId}).`); // Alert for referral success
+
+          // Alert User A that User B has registered
+          alert('User B has successfully registered using your referral code!');
         } else {
-          alert('Referral code not valid.'); // Alert if referral code is invalid
+          alert('Referral code is invalid. Please check and try again.');
         }
       } else {
-        alert('No referral code provided.'); // Alert if no referral code is entered
+        alert('User registered successfully without using a referral code!');
       }
-
-      // Step 5: Create User B's document
-      const userDoc = {
-        profileName: email.split('@')[0], // or another method to set username
-        dateOfBirth: null, // Initialize as null
-        phoneNumber: '',
-        points: 0,
-        referralCode: generateReferralCode(newUser.uid), // Generate a new referral code for User B
-        referralsCount: 0,
-        referralData: [], // Initialize as empty
-      };
-
-      await setDoc(doc(db, 'users', newUser.uid), userDoc);
-      alert(`User profile for ${newUser.uid} created successfully.`); // Alert for profile creation
     } catch (error) {
-      console.error("Error during signup:", error);
-      alert(`An error occurred during signup: ${error.message}`); // Alert for errors
+      console.error('Error signing up:', error);
+      alert(`Error signing up: ${error.message}`); // Alert with the error message
     }
   };
 
   return (
-    <div className="p-6 max-w-sm mx-auto bg-gray-100 rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold mb-4">Sign Up</h1>
+    <form onSubmit={handleSignup}>
       <input
         type="email"
-        placeholder="Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="w-full p-2 mb-4 border border-gray-300 rounded"
+        placeholder="Email"
         required
       />
       <input
         type="password"
-        placeholder="Password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        className="w-full p-2 mb-4 border border-gray-300 rounded"
+        placeholder="Password"
         required
       />
       <input
         type="text"
-        placeholder="Referral Code (optional)"
         value={referralCode}
         onChange={(e) => setReferralCode(e.target.value)}
-        className="w-full p-2 mb-4 border border-gray-300 rounded"
+        placeholder="Referral Code (optional)"
       />
-      <button
-        onClick={handleSignup}
-        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
-      >
-        Sign Up
-      </button>
-    </div>
+      <button type="submit">Sign Up</button>
+    </form>
   );
 };
 
