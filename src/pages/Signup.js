@@ -1,211 +1,97 @@
+// Signup.js
 import React, { useState } from 'react';
-import { auth, db } from '../firebase';
-import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
-import { doc, setDoc, getDoc, updateDoc, arrayUnion, serverTimestamp } from 'firebase/firestore';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc, updateDoc, getDocs, query, where, collection, arrayUnion, increment } from 'firebase/firestore';
+import { auth, db } from '../firebase'; // Adjust the path as necessary
 
-function Signup() {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [referralCode, setReferralCode] = useState('');
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
-    const navigate = useNavigate();
+const Signup = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [referralCode, setReferralCode] = useState('');
 
-    const logAction = (message) => {
-        console.log(`Log: ${message}`);
-    };
+  // Function to generate a referral code
+  const generateReferralCode = (userId) => `REF${userId.substring(0, 6)}`;
 
-    const handleSignup = async (e) => {
-        e.preventDefault();
-        setError('');
-        setLoading(true);
+  const handleSignup = async () => {
+    try {
+      // Step 1: Create the user in Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const newUser = userCredential.user;
+      alert(`User ${newUser.uid} signed up successfully.`); // Alert for successful signup
 
-        try {
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            const user = userCredential.user;
+      // Step 2: Check if the referral code is provided
+      if (referralCode) {
+        // Step 3: Look up the user with this referral code
+        const referrerQuery = await getDocs(query(collection(db, 'users'), where('referralCode', '==', referralCode)));
+        if (!referrerQuery.empty) {
+          const referrerDoc = referrerQuery.docs[0];
+          const referrerId = referrerDoc.id; // Get User A's UID
 
-            // Create user document for the new user
-            const userRef = doc(db, 'users', user.uid);
-            await setDoc(userRef, {
-                email: user.email,
-                points: 20, // Starting points for the new user
-                referralsCount: 0,
-                referralCode: generateReferralCode(user.uid),
-                pointsLog: [], // Initialize points log
-                referralData: [] // Initialize an array for storing referrer UIDs
-            });
-            logAction(`User ${user.uid} signed up and received 20 points.`);
-
-            // Handle referral code
-            await handleReferral(user.uid); // Pass the new user's ID to handle referral
-
-            navigate('/'); // Redirect to home after successful signup
-        } catch (error) {
-            setError(error.message);
-        } finally {
-            setLoading(false);
+          // Step 4: Update User A's document
+          await updateDoc(doc(db, 'users', referrerId), {
+            referralsCount: increment(1), // Increment the count
+            referralData: arrayUnion(newUser.uid), // Add User B's UID to User A's referral list
+          });
+          alert(`User ${newUser.uid} referred successfully to User A (${referrerId}).`); // Alert for referral success
+        } else {
+          alert('Referral code not valid.'); // Alert if referral code is invalid
         }
-    };
+      } else {
+        alert('No referral code provided.'); // Alert if no referral code is entered
+      }
 
-    const handleReferral = async (userId) => {
-        if (referralCode) {
-            try {
-                // Check if referrer exists based on referralCode
-                const referrerRef = doc(db, 'users', referralCode);
-                const referrerDoc = await getDoc(referrerRef);
+      // Step 5: Create User B's document
+      await setDoc(doc(db, 'users', newUser.uid), {
+        profileName: email.split('@')[0], // or another method to set username
+        dateOfBirth: null, // Initialize as null
+        phoneNumber: '',
+        points: 0,
+        referralCode: generateReferralCode(newUser.uid), // Generate a new referral code for User B
+        referralsCount: 0,
+        referralData: [], // Initialize as empty
+      });
 
-                if (referrerDoc.exists()) {
-                    const referrerData = referrerDoc.data();
-                    const referralUserRef = doc(db, 'users', userId);
+      alert(`User profile for ${newUser.uid} created successfully.`); // Alert for profile creation
+    } catch (error) {
+      console.error("Error during signup:", error);
+      alert(`An error occurred during signup: ${error.message}`); // Alert for errors
+    }
+  };
 
-                    // Update referrer (user A) points and referral count
-                    const updatedReferrerPoints = (referrerData.points || 0) + 20; // Referrer gets 20 points
-                    const updatedReferralCount = (referrerData.referralsCount || 0) + 1; // Increase referral count by 1
-
-                    // Update the referrer document
-                    await updateDoc(referrerRef, {
-                        points: updatedReferrerPoints,
-                        referralsCount: updatedReferralCount,
-                        pointsLog: arrayUnion({
-                            type: 'referral',
-                            points: 20,
-                            description: `Referral bonus from user ${userId}`,
-                            timestamp: serverTimestamp(),
-                        }),
-                        referralData: arrayUnion(userId) // Store the UID of User B in User A's referral data
-                    });
-                    logAction(`Referrer ${referralCode} updated with points: ${updatedReferrerPoints}, referralsCount: ${updatedReferralCount}`);
-
-                    // Update the referred user (User B)
-                    await updateDoc(referralUserRef, {
-                        points: 20, // Only starting points for the new user
-                        pointsLog: arrayUnion({
-                            type: 'new_signup',
-                            points: 20,
-                            description: 'Starting points for new signup',
-                            timestamp: serverTimestamp(),
-                        }),
-                        referralData: arrayUnion(referrerData.referralCode) // Store the referrer’s referral code in User B's document
-                    });
-                    logAction(`Referral user ${userId} updated with 20 points and points log entry.`);
-
-                    alert('Referral successful! The referrer has received points, and their referral count has increased.');
-                } else {
-                    setError('Referral code is invalid.');
-                    console.error("Invalid referral code.");
-                }
-            } catch (error) {
-                console.error("Error updating referral:", error);
-                setError(`Error: ${error.message}`);
-            }
-        }
-    };
-
-    const generateReferralCode = (userId) => {
-        return `REF${userId.substring(0, 6)}`; // Generate a unique referral code
-    };
-
-    const togglePasswordVisibility = () => {
-        setShowPassword(!showPassword);
-    };
-
-    const handleGoogleSignup = async () => {
-        const provider = new GoogleAuthProvider();
-        try {
-            const result = await signInWithPopup(auth, provider);
-            const user = result.user;
-
-            // Check if user already exists
-            const userRef = doc(db, 'users', user.uid);
-            const userDoc = await getDoc(userRef);
-            if (!userDoc.exists()) {
-                await setDoc(userRef, {
-                    email: user.email,
-                    points: 20,
-                    referralsCount: 0,
-                    referralCode: generateReferralCode(user.uid),
-                    pointsLog: [], // Initialize points log
-                    referralData: [] // Initialize an array for storing referrer UIDs
-                });
-                logAction(`Google signup: User ${user.uid} received 20 points.`);
-            }
-
-            // Handle referral after Google signup
-            await handleReferral(user.uid); // Pass the new user's ID to handle referral
-
-            navigate('/'); // Redirect to home after successful signup
-        } catch (error) {
-            setError(error.message);
-        }
-    };
-
-    return (
-        <div className="flex items-start justify-center min-h-screen bg-gray-100 pt-4">
-            <form className="bg-white p-8 rounded-lg shadow-lg w-96" onSubmit={handleSignup}>
-                <h2 className="mb-6 text-2xl font-bold text-center text-blue-600">Sign Up</h2>
-
-                {error && <p className="text-red-500 mb-4">{error}</p>}
-
-                <input
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full mb-4 p-3 border border-gray-300 rounded-md text-black focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    required
-                    aria-label="Email"
-                />
-
-                <div className="relative mb-4">
-                    <input
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder="Password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="w-full p-3 border border-gray-300 rounded-md text-black focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        required
-                        aria-label="Password"
-                    />
-                    <span onClick={togglePasswordVisibility} className="absolute right-3 top-3 cursor-pointer">
-                        {showPassword ? '👁️' : '👁️‍🗨️'}
-                    </span>
-                </div>
-
-                <input
-                    type="text"
-                    placeholder="Referral Code (optional)"
-                    value={referralCode}
-                    onChange={(e) => setReferralCode(e.target.value)}
-                    className="w-full mb-4 p-3 border border-gray-300 text-black rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    aria-label="Referral Code"
-                />
-
-                <button 
-                    type="submit" 
-                    className={`w-full py-2 mt-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-300 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    disabled={loading}
-                >
-                    {loading ? 'Signing Up...' : 'Sign Up'}
-                </button>
-
-                <button
-                    type="button"
-                    onClick={handleGoogleSignup}
-                    className={`w-full py-2 mt-4 bg-red-600 text-white rounded-md hover:bg-red-700 transition duration-300 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    disabled={loading}
-                >
-                    Continue with Google
-                </button>
-
-                <p className="mt-4 text-center text-gray-600">
-                    Already have an account?{' '}
-                    <a href="../desireways/login" className="text-blue-500 hover:text-blue-600 font-semibold">Log in</a>
-                </p>
-            </form>
-        </div>
-    );
-}
+  return (
+    <div className="p-6 max-w-sm mx-auto bg-gray-100 rounded-lg shadow-md">
+      <h1 className="text-2xl font-bold mb-4">Sign Up</h1>
+      <input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        className="w-full p-2 mb-4 border border-gray-300 rounded"
+        required
+      />
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        className="w-full p-2 mb-4 border border-gray-300 rounded"
+        required
+      />
+      <input
+        type="text"
+        placeholder="Referral Code (optional)"
+        value={referralCode}
+        onChange={(e) => setReferralCode(e.target.value)}
+        className="w-full p-2 mb-4 border border-gray-300 rounded"
+      />
+      <button
+        onClick={handleSignup}
+        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+      >
+        Sign Up
+      </button>
+    </div>
+  );
+};
 
 export default Signup;
