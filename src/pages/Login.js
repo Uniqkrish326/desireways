@@ -1,9 +1,8 @@
-// src/pages/Login.js
 import React, { useState } from 'react';
 import { auth } from '../firebase';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
-import { doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { db } from '../firebase';
 
 const getUserDetails = async () => {
@@ -43,36 +42,35 @@ function Login() {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
-            // Check if user's email is verified
-            const userDoc = await getDoc(doc(db, 'users', user.email)); // Fetch the user document
-            if (userDoc.exists() && !userDoc.data().isVerified) {
-                setError('Please verify your email before logging in.');
-                await auth.signOut(); // Sign the user out if the email is not verified
+            await user.reload();
+            if (!user.emailVerified) {
+                setError('Your signup is incomplete. Please check your email for the verification link.');
                 setLoading(false);
                 return;
             }
 
-            // Get user details
-            const userDetails = await getUserDetails();
+            const userDoc = await getDoc(doc(db, 'users', user.uid));
+            if (!userDoc.exists()) {
+                setError('User record not found. Please sign up again.');
+                setLoading(false);
+                return;
+            }
 
-            // Prepare logs data
-            const loginTimestamp = new Date().toISOString();
+            const userDetails = await getUserDetails();
             const logsData = {
                 lastLoginIP: userDetails?.ipAddress || "Unknown IP",
-                lastLoginTimestamp: loginTimestamp || "Unknown Timestamp",
+                lastLoginTimestamp: new Date().toISOString(),
                 location: userDetails?.location || { city: "Unknown", region: "Unknown", country: "Unknown" },
                 userAgent: userDetails?.userAgent || "Unknown User Agent",
             };
 
-            // Update Firestore with login logs
-            const userRef = doc(db, 'users', user.email);
-            await updateDoc(userRef, {
+            await updateDoc(doc(db, 'users', user.uid), {
                 logs: arrayUnion(logsData),
             });
 
-            navigate('/'); // Redirect to home if verified
+            navigate('/');
         } catch (error) {
-            setError(error.message); // Handle error and display message
+            setError(error.message);
         } finally {
             setLoading(false);
         }
@@ -84,35 +82,27 @@ function Login() {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
 
-            // Check if user's email is verified
-            const userDoc = await getDoc(doc(db, 'users', user.email));
-            if (userDoc.exists() && !userDoc.data().isVerified) {
-                setError('Please verify your email before logging in.');
-                await auth.signOut();
+            const userDoc = await getDoc(doc(db, 'users', user.uid));
+            if (!userDoc.exists()) {
+                setError('User record not found. Please sign up again.');
                 return;
             }
 
-            // Get user details
             const userDetails = await getUserDetails();
-
-            // Prepare logs data
-            const loginTimestamp = new Date().toISOString();
             const logsData = {
                 lastLoginIP: userDetails?.ipAddress || "Unknown IP",
-                lastLoginTimestamp: loginTimestamp || "Unknown Timestamp",
+                lastLoginTimestamp: new Date().toISOString(),
                 location: userDetails?.location || { city: "Unknown", region: "Unknown", country: "Unknown" },
                 userAgent: userDetails?.userAgent || "Unknown User Agent",
             };
 
-            // Update Firestore with login logs
-            const userRef = doc(db, 'users', user.email);
-            await updateDoc(userRef, {
+            await updateDoc(doc(db, 'users', user.uid), {
                 logs: arrayUnion(logsData),
             });
 
-            navigate('/'); // Redirect to home if verified
+            navigate('/');
         } catch (error) {
-            setError(error.message); // Handle error and display message
+            setError(error.message);
         }
     };
 
