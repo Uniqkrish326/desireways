@@ -4,6 +4,7 @@ import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-d
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase';
 import Header from './components/Header';
+import SearchResults from './components/SearchResults';
 import Home from './pages/Home';
 import ModelList from './pages/ModelList';
 import FilteredProductList from './pages/FilteredProductList';
@@ -34,8 +35,18 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/signup" element={<SignupWithReferral />} />
-
           {/* Protected routes */}
+                            
+          {/* Protecting the search route */}
+          <Route
+            path="/search"
+            element={
+              <ProtectedRoute user={user}>
+                <SearchResults />
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="/add-product"
             element={

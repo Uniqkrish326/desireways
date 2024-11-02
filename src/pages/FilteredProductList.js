@@ -24,7 +24,7 @@ const FilteredProductList = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center py-10">
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center py-10">
       {/* Back Link */}
       <button 
         onClick={() => navigate(-1)} 
@@ -45,20 +45,35 @@ const FilteredProductList = () => {
       />
 
       {/* Product List */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 w-full max-w-5xl mx-auto">
         {filteredProducts.length > 0 ? (
-          filteredProducts.map(product => (
-            <div key={product.id} className="bg-gray-800 p-6 rounded-lg shadow-lg">
-              <h3 className="text-xl font-semibold mb-2 truncate">{product.title}</h3>
-              <p className="text-gray-400 mb-4">{truncateDescription(product.description, 100)}</p> {/* Truncated description */}
-              <button
-                onClick={() => handleViewProduct(product.id)}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg mt-4"
+          filteredProducts.map(product => {
+            // Ensure prices are defined and parse them if necessary
+            const price = product.price ? Number(product.price) : 0;
+            const actualPrice = product.actualPrice ? Number(product.actualPrice) : 0;
+
+            return (
+              <div 
+                key={product.id} 
+                className="bg-gray-800 p-4 rounded-lg shadow-lg transition-transform duration-200 hover:scale-105 cursor-pointer"
+                onClick={() => handleViewProduct(product.id)} // Make entire card clickable
               >
-                View Product Details
-              </button>
-            </div>
-          ))
+                <div className="h-40 overflow-hidden"> {/* Container to maintain image aspect ratio */}
+                  <img 
+                    src={product.images[0]} 
+                    alt={product.title} 
+                    className="w-full h-full object-cover rounded-md" // Ensures the image covers the container completely
+                  />
+                </div>
+                <h3 className="text-lg font-semibold mb-1 truncate">{product.title}</h3>
+                <p className="text-xl font-bold mb-1">₹{price.toLocaleString()}</p> {/* Display current price */}
+                {actualPrice > 0 && (
+                  <p className="text-sm line-through text-gray-400 mb-1">₹{actualPrice.toLocaleString()}</p> // Display actual price if applicable
+                )}
+                <p className="text-sm text-gray-300">Stock: {product.stockCount || 0} units</p> {/* Display stock count */}
+              </div>
+            );
+          })
         ) : (
           <p className="text-gray-500">No products found for this model.</p>
         )}

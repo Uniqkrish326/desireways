@@ -1,8 +1,12 @@
+// src/pages/ProductDetail.js
+
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { doc, setDoc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import products from '../data/products.json';
+import ProductInfo from '../components/ProductInfo';
+import UserReviews from '../components/UserReviews';
 import '../styles/ProductDetail.css';
 
 const ProductDetail = () => {
@@ -24,13 +28,11 @@ const ProductDetail = () => {
       const user = auth.currentUser;
       if (user) {
         setUserId(user.uid);
-
         const userRef = doc(db, 'users', user.uid);
         const userDoc = await getDoc(userRef);
         if (userDoc.exists()) {
           const userData = userDoc.data();
           setUserName(userData.profileName || 'Anonymous');
-          // Check if the product is already in the wishlist
           if (userData.wishlist && userData.wishlist.some(item => item.productId === productId)) {
             setIsWishlisted(true);
           }
@@ -44,7 +46,6 @@ const ProductDetail = () => {
     fetchUserDetails();
   }, [navigate, productId]);
 
-  // Moved fetchReviews definition inside the useEffect to avoid dependency warning
   const fetchReviews = async () => {
     if (!userId) return;
     setLoading(true);
@@ -55,12 +56,9 @@ const ProductDetail = () => {
     setLoading(false);
   };
 
-  useEffect(() => {   
+  useEffect(() => {
     fetchReviews();
-    // eslint-disable-next-line
   }, [userId, productId]);
-
-  const handleRatingClick = (rating) => setUserRating(rating);
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
@@ -98,18 +96,15 @@ const ProductDetail = () => {
         text: reviewText,
         rating: userRating,
         userName,
-        timestamp: new Date(),
+        timestamp: editingReviewId,
       };
 
       const userRef = doc(db, 'users', userId);
-      // Remove the old review
       await updateDoc(userRef, {
-        reviews: arrayRemove(reviews.find(r => r.timestamp === editingReviewId)), // Match by timestamp
+        reviews: arrayRemove(reviews.find(r => r.timestamp === editingReviewId)), // Remove old review
       });
-
-      // Add the updated review
       await updateDoc(userRef, {
-        reviews: arrayUnion(updatedReviewData),
+        reviews: arrayUnion(updatedReviewData), // Add updated review
       });
 
       await fetchReviews();
@@ -124,129 +119,55 @@ const ProductDetail = () => {
     await updateDoc(userRef, {
       reviews: arrayRemove(review),
     });
-
     await fetchReviews();
   };
 
   const handleWishlistToggle = async () => {
     const userRef = doc(db, 'users', userId);
-    const wishlistItem = { productId, url: window.location.pathname };
-
     if (isWishlisted) {
       await updateDoc(userRef, {
-        wishlist: arrayRemove(wishlistItem),
+        wishlist: arrayRemove({ productId }),
       });
       setIsWishlisted(false);
     } else {
       await updateDoc(userRef, {
-        wishlist: arrayUnion(wishlistItem),
+        wishlist: arrayUnion({ productId }),
       });
       setIsWishlisted(true);
     }
   };
 
-  // Check if product exists before rendering
-  if (!product) return <p className="text-gray-500 text-center">Product not found</p>;
-
-  const images = product.images || [];
-  const videos = product.videos || [];
   const overallRating = reviews.length > 0
-    ? (reviews.reduce((a, b) => a + b.rating, 0) / reviews.length).toFixed(1)
+    ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
     : 0;
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <div className="flex items-center mb-4">
-        <button onClick={() => navigate(-1)} className="text-blue-500 text-sm mr-4">Back</button>
-        <h5 className="text-3xl md:text-4xl font-bold text-center flex-1">{product.title}</h5>
-      </div>
-
-      <div className="bg-gray-800 p-6 rounded-lg shadow-lg mb-8">
-        <div className="media-container mb-4 grid grid-cols-2 md:grid-cols-3 gap-4">
-          {images.map((image, index) => (
-            <img key={index} src={image} alt="" className="rounded-md object-cover" loading="lazy" />
-          ))}
-          {videos.map((video, index) => (
-            <video key={index} controls className="rounded-md object-cover" loading="lazy">
-              <source src={video} type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
-          ))}
-          {images.length === 0 && videos.length === 0 && (
-            <div className="bg-gray-600 text-white p-4 rounded-md text-center col-span-2">No media available for this product.</div>
-          )}
-        </div>
-
-        <p className="text-gray-400 mb-4">{product.description}</p>
-        <p className="text-xl font-bold mb-4">${product.price}</p>
-
-        <div className="text-center mb-4">
-          <strong>Overall Rating: </strong>{overallRating > 0 ? overallRating : 'No ratings yet'}
-        </div>
-
-        <div className="text-center mb-4">
-          <Link to={product.link} className="bg-green-500 text-white px-4 py-2 rounded-md">Buy Now</Link>
-        </div>
-        <div className="text-center mb-4">
-          <button onClick={handleWishlistToggle} className={`w-1/4 mx-auto py-2 rounded-md ${isWishlisted ? 'bg-red-500' : 'bg-blue-500'} text-white`}>
-            {isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
-          </button>
-        </div>
-      </div>
-
-      <form onSubmit={editingReviewId ? handleReviewUpdate : handleReviewSubmit} className="review-section mb-4">
-        <div className="mb-2">
-          <span className="text-xl font-bold">Rate this product</span>
-        </div>
-        <div className="flex mb-2">
-          {Array.from({ length: 5 }, (_, index) => (
-            <div
-              key={index}
-              className={`cube ${userRating !== null && userRating >= index + 1 ? 'glow' : 'bg-transparent border border-gray-600'} w-6 h-6 m-1`}
-              onClick={() => handleRatingClick(index + 1)}
-            />
-          ))}
-        </div>
-        <textarea
-          value={reviewText}
-          onChange={(e) => setReviewText(e.target.value)}
-          placeholder="Write your review here..."
-          className="w-full p-2 mb-2 rounded-md bg-gray-700 text-white"
-          required
-        />
-        <button
-          type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded-md"
-        >
-          {editingReviewId ? 'Update Review' : 'Submit Review'}
-        </button>
-      </form>
-
-      <h2 className="text-3xl font-bold mb-6 text-center">User Reviews</h2>
-      {loading ? (
-        <p>Loading reviews...</p>
-      ) : reviews.length === 0 ? (
-        <p>No reviews yet.</p>
+    <div className="container mx-auto p-4">
+      <button
+        onClick={() => navigate(-1)} // Go back to the previous page
+        className="mb-4 text-blue-500 hover:text-blue-700 ml-40 mt-2" // Add left margin to position it slightly to the right
+      >
+        &lt; Back
+      </button>
+      {product ? (
+        <>
+          <ProductInfo product={product} overallRating={overallRating} isWishlisted={isWishlisted} handleWishlistToggle={handleWishlistToggle} />
+          <UserReviews
+            reviews={reviews}
+            loading={loading}
+            userRating={userRating}
+            setUserRating={setUserRating}
+            reviewText={reviewText}
+            setReviewText={setReviewText}
+            handleReviewSubmit={handleReviewSubmit}
+            editingReviewId={editingReviewId}
+            handleReviewUpdate={handleReviewUpdate}
+            handleReviewEdit={handleReviewEdit}
+            handleReviewDelete={handleReviewDelete}
+          />
+        </>
       ) : (
-        reviews.map((review) => (
-          <div key={review.timestamp} className="bg-gray-800 p-4 rounded-lg mb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <strong>{review.userName}</strong>
-                <div className="flex">
-                  {Array.from({ length: 5 }, (_, index) => (
-                    <div key={index} className={`cube ${review.rating > index ? 'glow' : 'bg-transparent border border-gray-600'} w-4 h-4 m-1`} />
-                  ))}
-                </div>
-              </div>
-              <div>
-                <button onClick={() => handleReviewEdit(review)} className="text-blue-500 mr-2">Edit</button>
-                <button onClick={() => handleReviewDelete(review)} className="text-red-500">Delete</button>
-              </div>
-            </div>
-            <p className="mt-2">{review.text}</p>
-          </div>
-        ))
+        <h1 className="text-center text-3xl">Product not found</h1>
       )}
     </div>
   );

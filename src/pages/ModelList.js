@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import products from '../data/products.json'; // Import your products data
 
@@ -6,15 +6,22 @@ const ModelList = () => {
   const { category } = useParams(); // Get the category from URL
   const navigate = useNavigate();
 
-  // Extract unique models for the selected category (e.g., "Phones", "Laptops")
-  const models = [...new Set(products.filter(p => p.category === category).map(p => p.name.split(' ')[0]))]; // Adjust the mapping logic here to fit the naming convention of your models
+  // Extract unique models for the selected category
+  const models = [...new Set(products
+    .filter(p => p.category.toLowerCase() === category.toLowerCase())
+    .map(p => p.name))];
 
   const handleSelectModel = (model) => {
     navigate(`/products/${category}/${model}`); // Navigate to the model's product list
   };
 
+  useEffect(() => {
+    // Scroll to the top of the page when the component mounts
+    window.scrollTo(0, 0);
+  }, []); // Empty dependency array ensures this runs once on mount
+
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center py-10">
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center py-10 px-4">
       {/* Back Link */}
       <button 
         onClick={() => navigate(-1)} 
@@ -23,19 +30,34 @@ const ModelList = () => {
         Back
       </button>
 
-      <h1 className="text-4xl font-bold mb-8">{category} Products</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {models.map((model, index) => (
-          <div key={index} className="bg-gray-800 p-6 rounded-lg shadow-lg">
-            <h3 className="text-xl font-semibold mb-2 truncate">{model}</h3>
-            <button
-              onClick={() => handleSelectModel(model)}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg mt-4"
-            >
-              View {model} Products
-            </button>
-          </div>
-        ))}
+      <h1 className="text-4xl font-bold mb-8 text-center">{category.charAt(0).toUpperCase() + category.slice(1)} Products</h1>
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        {models.length === 0 ? (
+          <p className="text-center text-lg">No models available for this category.</p>
+        ) : (
+          models.map((model, index) => {
+            // Find the product with the current model name to display the first image
+            const product = products.find(p => p.name === model);
+            const imageUrl = product && product.images[0]; // Get the first image for the model
+
+            return (
+              <div key={index} className="bg-gray-800 p-4 rounded-lg shadow-lg transition-transform duration-200 hover:scale-105 flex flex-col">
+                <img 
+                  src={imageUrl} 
+                  alt={model} 
+                  className="w-full h-32 object-cover rounded-md mb-2" // Adjusted height for images
+                />
+                <h3 className="text-lg font-semibold mb-2 truncate">{model}</h3>
+                <button
+                  onClick={() => handleSelectModel(model)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg mt-auto transition duration-200 w-full"
+                >
+                  View {model} Products
+                </button>
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );

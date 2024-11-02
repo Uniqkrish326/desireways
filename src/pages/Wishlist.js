@@ -30,23 +30,23 @@ const Wishlist = () => {
   if (loading) return <p>Loading...</p>;
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold text-center mb-4">Your Wishlist</h1>
+    <div className="p-6 max-w-6xl mx-auto">
+      <h1 className="text-4xl font-bold text-center mb-6">Your Wishlist</h1>
       <button 
         onClick={() => navigate(-1)} // Go back to the previous page
-        className="mb-4 text-white bg-blue-500 hover:bg-blue-700 py-2 px-4 rounded"
+        className="mb-6 text-white bg-blue-600 hover:bg-blue-700 py-2 px-6 rounded shadow-lg transition duration-300"
       >
         Back
       </button>
       {wishlistItems.length === 0 ? (
-        <p className="text-gray-500 text-center">Your wishlist is empty.</p>
+        <p className="text-gray-500 text-center text-xl">Your wishlist is empty.</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
           {wishlistItems.map((item, index) => {
             const product = products.find((p) => p.id === parseInt(item.productId));
             return (
               product && (
-                <div key={index} className="border rounded-lg overflow-hidden shadow-lg">
+                <div key={index} className="border rounded-lg overflow-hidden shadow-lg transition-transform duration-300 transform hover:scale-105">
                   <Link 
                     to={`/products/${product.category}/${product.name}/${product.id}`} // Correct URL format without subcategory
                     className="block h-full"
@@ -58,7 +58,7 @@ const Wishlist = () => {
                     />
                     <div className="p-4">
                       <h2 className="text-lg font-semibold">{product.title}</h2>
-                      <p className="text-gray-500">${product.price}</p> {/* Assuming there's a price */}
+                      <p className="text-gray-500 text-md">${product.price}</p> {/* Assuming there's a price */}
                     </div>
                   </Link>
                 </div>

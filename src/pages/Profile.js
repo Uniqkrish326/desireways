@@ -4,7 +4,6 @@ import { auth, db } from '../firebase';
 import { useNavigate } from 'react-router-dom';
 
 const Profile = () => {
-  // State variables
   const [userData, setUserData] = useState(null);
   const [editing, setEditing] = useState(false);
   const [profileDetails, setProfileDetails] = useState({
@@ -15,13 +14,10 @@ const Profile = () => {
   });
   const [referralCode, setReferralCode] = useState('');
   const [referralLink, setReferralLink] = useState('');
-  // eslint-disable-next-line
-  const [referralsCount, setReferralsCount] = useState(0);
   const [lastUpdated, setLastUpdated] = useState(0);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Fetch user data on component mount
   useEffect(() => {
     const fetchUserData = async () => {
       const user = auth.currentUser;
@@ -40,7 +36,6 @@ const Profile = () => {
           const generatedReferralCode = data.referralCode || generateReferralCode(user.uid);
           setReferralCode(generatedReferralCode);
           setReferralLink(`https://uniqkrish326.github.io/desireways/#/signup?ref=${generatedReferralCode}`);
-          setReferralsCount(data.referralsCount || 0);
         }
         setLoading(false);
       }
@@ -48,71 +43,20 @@ const Profile = () => {
     fetchUserData();
   }, []);
 
-  // Toggle edit mode
-  const handleEditToggle = () => {
-    setEditing(!editing);
-  };
+  const handleEditToggle = () => setEditing(!editing);
 
-  // Generate a referral code
   const generateReferralCode = (userId) => `REF${userId.substring(0, 6)}`;
 
-  // Format the date of birth
   const formatDate = (date) => {
     const dateObj = date instanceof Timestamp ? date.toDate() : new Date(date);
-    return dateObj.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+    return dateObj.toISOString().split('T')[0];
   };
 
-  // Log points for user actions
-  const logPoints = async (userId, points, action) => {
-    const userRef = doc(db, 'users', userId);
-    const newLog = {
-      timestamp: new Date().toISOString(),
-      points,
-      action,
-    };
-
-    // Update the user's document in Firestore
-    await updateDoc(userRef, {
-      pointsLog: arrayUnion(newLog),
-    });
-  };
-
-  // Log profile updates
-  const logProfileUpdate = async (userId, previousData, pointsAwarded = 0) => {
-    const userRef = doc(db, 'users', userId);
-    const newLog = {
-      timestamp: new Date().toISOString(),
-      action: pointsAwarded > 0 ? "Profile filled for the first time" : "Profile updated",
-      pointsAwarded,
-      previousData,
-    };
-
-    // Update the user's document in Firestore
-    await updateDoc(userRef, {
-      profileLogs: arrayUnion(newLog),
-    });
-
-    // Store current profile data
-    const currentProfile = {
-      profileName: profileDetails.profileName,
-      dateOfBirth: Timestamp.fromDate(new Date(profileDetails.dateOfBirth)),
-      phoneNumber: profileDetails.phoneNumber,
-      timestamp: new Date().toISOString(),
-    };
-
-    // Store the current profile data in Firestore
-    await updateDoc(userRef, {
-      profileData: arrayUnion(currentProfile),
-    });
-  };
-
-  // Handle profile saving
   const handleSaveProfile = async () => {
     try {
       const now = Date.now();
       const user = auth.currentUser;
 
-      // Rate limit for profile updates
       if (now - lastUpdated < 300000) {
         alert('You can only update your profile every 5 minutes.');
         return;
@@ -126,33 +70,22 @@ const Profile = () => {
         : 0;
       const isProfileFilled = userDoc.exists() ? userDoc.data().profileFilled : false;
 
-      // Check if date of birth is required
       if (!profileDetails.dateOfBirth) {
         alert("Date of Birth is required.");
         return;
       }
 
       if (!isProfileFilled) {
-        // Log points and profile update for first-time profile fill
         await updateDoc(userRef, {
           ...profileDetails,
           dateOfBirth: Timestamp.fromDate(new Date(profileDetails.dateOfBirth)),
           points: currentPoints + 50,
           profileFilled: true,
-          referralCode: generateReferralCode(user.uid), // Generate and store referral code
-          referralsCount: 0, // Initialize referrals count
+          referralCode: generateReferralCode(user.uid),
+          referralsCount: 0,
         });
-        await logPoints(user.uid, 50, 'Profile filled for the first time');
-        await logProfileUpdate(user.uid, {}, 50);
         alert("50 points have been awarded for filling your profile!");
       } else {
-        // Log previous data before updating
-        const previousData = {
-          profileName: userDoc.data().profileName,
-          dateOfBirth: userDoc.data().dateOfBirth,
-          phoneNumber: userDoc.data().phoneNumber,
-        };
-        await logProfileUpdate(user.uid, previousData);
         await updateDoc(userRef, {
           ...profileDetails,
           dateOfBirth: Timestamp.fromDate(new Date(profileDetails.dateOfBirth)),
@@ -173,78 +106,76 @@ const Profile = () => {
     }
   };
 
-  // Loading state
   if (loading) {
     return <p className="text-center text-gray-800">Loading...</p>;
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto bg-gray-100">
+    <div className="p-8 max-w-3xl mx-auto bg-white shadow-lg rounded-lg">
       <button
         onClick={() => navigate(-1)}
-        className="bg-gray-300 text-black px-4 py-2 rounded mb-4 hover:bg-gray-400 transition"
+        className="bg-blue-500 text-white px-4 py-2 rounded mb-4 hover:bg-blue-600 transition-all"
       >
         Back
       </button>
-      <h1 className="text-3xl font-bold mb-4 text-gray-800">Profile</h1>
-      <div className="border border-gray-300 rounded-lg p-6 bg-white shadow-md">
+      <h1 className="text-4xl font-bold mb-6 text-blue-700 text-center">Profile</h1>
+      <div className="border border-gray-200 rounded-lg p-6 bg-gray-50 shadow-md">
         {editing ? (
           <div>
-            <div className="mb-4">
-              <label className="block text-sm font-bold mb-2 text-gray-700">Profile Name</label>
+            <div className="mb-6">
+              <label className="block text-sm font-semibold mb-1 text-blue-600">Profile Name</label>
               <input
                 type="text"
                 value={profileDetails.profileName}
                 onChange={(e) => setProfileDetails({ ...profileDetails, profileName: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded text-black"
+                className="w-full p-3 border border-gray-300 rounded-lg text-black focus:border-blue-500 focus:outline-none"
               />
             </div>
-            <div className="mb-4">
-              <label className="block text-sm font-bold mb-2 text-gray-700">Date of Birth</label>
+            <div className="mb-6">
+              <label className="block text-sm font-semibold mb-1 text-blue-600">Date of Birth</label>
               <input
                 type="date"
                 value={profileDetails.dateOfBirth}
                 onChange={(e) => setProfileDetails({ ...profileDetails, dateOfBirth: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded text-black"
+                className="w-full p-3 border border-gray-300 rounded-lg text-black focus:border-blue-500 focus:outline-none"
                 required
               />
             </div>
-            <div className="mb-4">
-              <label className="block text-sm font-bold mb-2 text-gray-700">Phone Number</label>
-              <input
+            <div className="mb-6">
+              <label className="block text-sm font-semibold mb-1 text-blue-600">Phone Number</label>
+              <input required
                 type="text"
                 value={profileDetails.phoneNumber}
                 onChange={(e) => setProfileDetails({ ...profileDetails, phoneNumber: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded text-black"
+                className="w-full p-3 border border-gray-300 rounded-lg text-black focus:border-blue-500 focus:outline-none"
               />
             </div>
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
               <button
                 onClick={handleSaveProfile}
-                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition"
+                className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-all"
               >
                 Save
               </button>
               <button
                 onClick={handleEditToggle}
-                className="bg-red-500 text-white px-4 py-2 rounded ml-2 hover:bg-red-600 transition"
+                className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-all"
               >
                 Cancel
               </button>
             </div>
           </div>
         ) : (
-          <div>
-            <p className="text-gray-800"><strong>Name:</strong> {userData?.profileName}</p>
-            <p className="text-gray-800"><strong>Date of Birth:</strong> {userData?.dateOfBirth ? formatDate(userData.dateOfBirth) : "Not set"}</p>
-            <p className="text-gray-800"><strong>Phone Number:</strong> {userData?.phoneNumber || "Not set"}</p>
-            <p className="text-gray-800"><strong>Points:</strong> {userData?.points || 0}</p>
-            <p className="text-gray-800"><strong>Referral Code:</strong> {referralCode}</p>
-            <p className="text-gray-800"><strong>Referral Link:</strong> <a href={referralLink} className="text-blue-600 hover:underline">{referralLink}</a></p>
-            {/* Removed Total Referrals and Referred Users sections */}
+          <div className="space-y-4">
+            <p className="text-gray-700 text-lg"><strong>Name:</strong> {userData?.profileName}</p>
+            <p className="text-gray-700 text-lg"><strong>Date of Birth:</strong> {userData?.dateOfBirth ? formatDate(userData.dateOfBirth) : "Not set"}</p>
+            <p className="text-gray-700 text-lg"><strong>Phone Number:</strong> {userData?.phoneNumber || "Not set"}</p>
+            <p className="text-gray-700 text-lg"><strong>Points:</strong> {userData?.points || 0}</p>
+            <p className="text-gray-700 text-lg"><strong>Referral Code:</strong> {referralCode}</p>
+            <p className="text-gray-700 text-lg"><strong>Referral Link:</strong> <a href={referralLink} className="text-blue-500 underline hover:text-blue-700">{referralLink}</a></p>
             <button
               onClick={handleEditToggle}
-              className="bg-blue-500 text-white px-4 py-2 rounded mt-4 hover:bg-blue-600 transition"
+              className="bg-blue-500 text-white px-6 py-2 rounded-lg mt-4 hover:bg-blue-600 transition-all"
             >
               Edit Profile
             </button>

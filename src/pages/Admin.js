@@ -1,6 +1,6 @@
 // src/pages/Admin.js
 import React, { useState, useEffect } from 'react';
-import { db } from '../firebase'; // Import Firebase configurations
+import { db } from '../firebase';
 import { collection, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 
 const AdminDashboard = () => {
@@ -38,7 +38,7 @@ const AdminDashboard = () => {
     }
   };
 
-  // Update an existing user in Firestore
+  // Update user data
   const handleUpdateUser = async (id) => {
     const updatedData = prompt('Enter new data in JSON format (e.g., {"email": "newemail@example.com", "points": 100}):');
     if (updatedData) {
@@ -52,7 +52,7 @@ const AdminDashboard = () => {
     }
   };
 
-  // Delete a user from Firestore
+  // Delete a user
   const handleDeleteUser = async (id) => {
     const confirmDelete = window.confirm('Are you sure you want to delete this user?');
     if (confirmDelete) {
@@ -66,15 +66,11 @@ const AdminDashboard = () => {
     }
   };
 
-  // Safely render any value, converting objects to strings where necessary
+  // Render any value, converting objects to strings where necessary
   const renderValue = (value) => {
-    if (value === undefined || value === null) {
-      return 'N/A'; // Default message if value is missing
-    }
-    if (typeof value === 'object') {
-      return JSON.stringify(value); // Convert objects to JSON string for display
-    }
-    return value.toString(); // Convert to string if it's a number or other type
+    if (value === undefined || value === null) return 'N/A';
+    if (typeof value === 'object') return JSON.stringify(value);
+    return value.toString();
   };
 
   // Loading state
@@ -91,7 +87,7 @@ const AdminDashboard = () => {
           placeholder="Enter admin password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="border border-gray-300 rounded p-2 mb-4 w-full max-w-xs text-black" // Text color set to black
+          className="border border-gray-300 rounded p-2 mb-4 w-full max-w-xs text-black"
         />
         <button onClick={handleLogin} className="bg-blue-600 text-white p-2 rounded w-full max-w-xs">
           Login
@@ -103,11 +99,10 @@ const AdminDashboard = () => {
   return (
     <div className="p-6 max-w-6xl mx-auto bg-gray-100 rounded-lg shadow-lg">
       <h1 className="text-3xl font-bold mb-6 text-gray-900">Admin Dashboard</h1>
-      
+
       <section className="mb-8 p-4 bg-white rounded-lg shadow">
         <h2 className="text-2xl mb-4 text-gray-800">User List</h2>
-        
-        {/* Filter Section */}
+
         <div className="mb-4">
           <input
             type="text"
@@ -117,17 +112,17 @@ const AdminDashboard = () => {
             className="border border-gray-300 rounded p-2 w-full"
           />
         </div>
-        
+
         {data.length > 0 ? (
-          data.filter(user => 
-            user.profileName.toLowerCase().includes(filter.toLowerCase()) || 
+          data.filter(user =>
+            user.profileName.toLowerCase().includes(filter.toLowerCase()) ||
             user.email.toLowerCase().includes(filter.toLowerCase())
           ).map((item) => (
             <div key={item.id} className="mb-4 border border-gray-300 rounded p-4">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-black">{item.profileName} ({item.email})</h3> {/* Text color set to black */}
-                <button 
-                  onClick={() => setExpandedUser(expandedUser === item.id ? null : item.id)} 
+                <h3 className="text-lg font-semibold text-black">{item.profileName} ({item.email})</h3>
+                <button
+                  onClick={() => setExpandedUser(expandedUser === item.id ? null : item.id)}
                   className="bg-gray-300 text-gray-800 p-1 rounded">
                   {expandedUser === item.id ? 'Hide Details' : 'Show Details'}
                 </button>
@@ -140,25 +135,51 @@ const AdminDashboard = () => {
                   <p className="text-black"><strong>Referral Count:</strong> {renderValue(item.referralsCount)}</p>
                   <p className="text-black"><strong>Points:</strong> {renderValue(item.points)}</p>
 
-                  {/* Last Login Details */}
-                  <h4 className="mt-4 text-black"><strong>Last Login Details:</strong></h4>
-                
-                {/* Logs Section */}
-<h4 className="mt-4 text-black font-bold">Logs:</h4>
-<div className="bg-gray-200 p-4 rounded-lg shadow">
-  {item.logs && item.logs.length > 0 ? (
-    item.logs.map((log, index) => (
-      <div key={index} className="mb-2 p-2 border-b border-gray-300 last:border-b-0">
-        <p className="text-black">
-          <strong>Log {index + 1}:</strong> {renderValue(log)}
-        </p>
-      </div>
-    ))
-  ) : (
-    <p className="text-black">No logs available.</p>
-  )}
-</div>
+                  {/* Points Log */}
+                  <h4 className="mt-4 text-black font-bold">Points Log:</h4>
+                  <div className="bg-gray-200 p-4 rounded-lg shadow">
+                    {item.pointsLog && item.pointsLog.length > 0 ? (
+                      item.pointsLog.map((log, index) => (
+                        <div key={index} className="mb-2 p-2 border-b border-gray-300 last:border-b-0">
+                          <p className="text-black">
+                            <strong>Log {index + 1}:</strong> {renderValue(log)}
+                          </p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-black">No points log available.</p>
+                    )}
+                  </div>
 
+                  {/* Profile Data */}
+                  <h4 className="mt-4 text-black font-bold">Profile Data:</h4>
+                  <div className="bg-gray-200 p-4 rounded-lg shadow">
+                    {item.profileData && item.profileData.length > 0 ? (
+                      item.profileData.map((profile, index) => (
+                        <div key={index} className="mb-2 p-2 border-b border-gray-300 last:border-b-0">
+                          <p className="text-black"><strong>Profile {index + 1}:</strong> {renderValue(profile)}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-black">No profile data available.</p>
+                    )}
+                  </div>
+
+                  {/* Profile Logs */}
+                  <h4 className="mt-4 text-black font-bold">Profile Logs:</h4>
+                  <div className="bg-gray-200 p-4 rounded-lg shadow">
+                    {item.profileLogs && item.profileLogs.length > 0 ? (
+                      item.profileLogs.map((log, index) => (
+                        <div key={index} className="mb-2 p-2 border-b border-gray-300 last:border-b-0">
+                          <p className="text-black">
+                            <strong>Action {index + 1}:</strong> {renderValue(log)}
+                          </p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-black">No profile logs available.</p>
+                    )}
+                  </div>
 
                   <button onClick={() => handleUpdateUser(item.id)} className="bg-blue-600 text-white p-1 rounded mt-2 mr-2">
                     Update

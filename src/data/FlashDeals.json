@@ -1,0 +1,110 @@
+[
+    {
+      "id": 1,
+      "category": "electronics",
+      "name": "Phones",
+      "title": "iQOO Z9 Lite 5G (Aqua Flow, 4GB RAM, 128GB)",
+      "link": "https://amzn.to/3NAKYix",
+      "description": "Powered by Android 14, 4GB RAM, 128GB storage, 5000mAh battery. Includes Dual SIM, rear camera, Wi-Fi, Bluetooth 5.4, and USB. Comes with charger, USB cable, and phone case.",
+      "price": "10,000",
+      "images": [
+        "https://m.media-amazon.com/images/I/61WZicN+coL._SL1200_.jpg"
+      ],
+      "videos": []
+    },
+    {
+      "id": 2,
+      "category": "electronics",
+      "name": "Phones",
+      "title": "realme NARZO N65 5G (Amber Gold, 4GB RAM, 128GB)",
+      "link": "https://amzn.to/40dLjiM",
+      "description": "India's 1st D6300 5G chipset, 6GB RAM, 50MP AI camera, 5000mAh battery, 120Hz display, slim design. Includes charger, USB cable, and phone case.",
+      "price": "10,000",
+      "images": [
+        "https://m.media-amazon.com/images/I/81MS1KhiTvL._SL1500_.jpg"
+      ],
+      "videos": []
+    },
+    {
+      "id": 3,
+      "category": "electronics",
+      "name": "Phones",
+      "title": "TECNO POP 9 5G (Aurora Cloud, 4GB+64GB)",
+      "link": "https://amzn.to/3zVjfGd",
+      "description": "Segment's 1st 48MP Sony AI Camera, D6300 5G processor, NFC, 5000mAh battery, Dolby Atmos sound. Includes IR Remote and dual speaker. No charger included.",
+      "price": "9,000",
+      "images": [
+        "https://m.media-amazon.com/images/I/61yHIxBZ6iL._SL1280_.jpg"
+      ],
+      "videos": []
+    },
+    {
+      "id": 4,
+      "category": "electronics",
+      "name": "Earbuds",
+      "title": "boAt Nirvana Space Truly Wireless Earbuds (Cosmic Black)",
+      "link": "https://amzn.to/4eRDrrs",
+      "description": "360º Spatial Audio, 32dB ANC, 100HRS playback, 4 Mics with AI-ENx™, in-ear detection, DLC drivers, multipoint connectivity.",
+      "price": "1,999",
+      "images": [
+        "https://m.media-amazon.com/images/I/71SB8ivq4GL._SL1500_.jpg"
+      ],
+      "videos": []
+    },
+        {
+          "id": 5,
+          "category": "electronics",
+          "name": "Phones",
+          "title": "iQOO Z9 Lite 5G (Aqua Flow, 4GB RAM, 128GB)",
+          "link": "https://amzn.to/3NAKYix",
+          "description": "Powered by Android 14, 4GB RAM, 128GB storage, 5000mAh battery. Includes Dual SIM, rear camera, Wi-Fi, Bluetooth 5.4, and USB. Comes with charger, USB cable, and phone case.",
+          "price": "10,000",
+          "images": [
+            "https://m.media-amazon.com/images/I/61WZicN+coL._SL1200_.jpg"
+          ],
+          "videos": []
+        },
+        {
+          "id": 6,
+          "category": "electronics",
+          "name": "Phones",
+          "title": "realme NARZO N65 5G (Amber Gold, 4GB RAM, 128GB)",
+          "link": "https://amzn.to/40dLjiM",
+          "description": "India's 1st D6300 5G chipset, 6GB RAM, 50MP AI camera, 5000mAh battery, 120Hz display, slim design. Includes charger, USB cable, and phone case.",
+          "price": "10,000",
+          "images": [
+            "https://m.media-amazon.com/images/I/81MS1KhiTvL._SL1500_.jpg"
+          ],
+          "videos": []
+        },
+        {
+          "id": 8,
+          "category": "electronics",
+          "name": "Phones",
+          "title": "TECNO POP 9 5G (Aurora Cloud, 4GB+64GB)",
+          "link": "https://amzn.to/3zVjfGd",
+          "description": "Segment's 1st 48MP Sony AI Camera, D6300 5G processor, NFC, 5000mAh battery, Dolby Atmos sound. Includes IR Remote and dual speaker. No charger included.",
+          "price": "9,000",
+          "images": [
+            "https://m.media-amazon.com/images/I/61yHIxBZ6iL._SL1280_.jpg"
+          ],
+          "videos": []
+        },
+        {
+          "id": 9,
+          "category": "electronics",
+          "name": "Earbuds",
+          "title": "boAt Nirvana Space Truly Wireless Earbuds (Cosmic Black)",
+          "link": "https://amzn.to/4eRDrrs",
+          "description": "360º Spatial Audio, 32dB ANC, 100HRS playback, 4 Mics with AI-ENx™, in-ear detection, DLC drivers, multipoint connectivity.",
+          "price": "1,999",
+          "images": [
+            "https://m.media-amazon.com/images/I/71SB8ivq4GL._SL1500_.jpg"
+          ],
+          "videos": []
+        }
+        
+      
+      
+  ]
+  
