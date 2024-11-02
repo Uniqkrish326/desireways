@@ -1,202 +1,95 @@
-// src/pages/Admin.js
 import React, { useState, useEffect } from 'react';
+import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
-import { collection, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
 
-const AdminDashboard = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [password, setPassword] = useState('');
-  const [authenticated, setAuthenticated] = useState(false);
-  const [filter, setFilter] = useState('');
-  const [expandedUser, setExpandedUser] = useState(null); // Track expanded user
-  const ADMIN_PASSWORD = 'admin'; // Change this to your secure password
-
-  // Fetch data from Firestore on mount
-  const fetchData = async () => {
-    try {
-      const querySnapshot = await getDocs(collection(db, 'users'));
-      const items = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setData(items);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+const Admin = () => {
+  const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchData();
+    const fetchUsers = async () => {
+      const usersCollection = collection(db, 'users');
+      const usersSnapshot = await getDocs(usersCollection);
+      const usersList = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setUsers(usersList);
+      setFilteredUsers(usersList); // Initialize filteredUsers with all users
+    };
+
+    fetchUsers();
   }, []);
 
-  // Authenticate admin
-  const handleLogin = () => {
-    if (password === ADMIN_PASSWORD) {
-      setAuthenticated(true);
-    } else {
-      alert('Incorrect password');
-    }
+  useEffect(() => {
+    const filterUsers = () => {
+      const filtered = users.filter(user => {
+        const profileNameMatch = (user.profileName || '').toLowerCase().includes(searchTerm.toLowerCase());
+        const emailMatch = (user.email || '').toLowerCase().includes(searchTerm.toLowerCase());
+        const phoneNumberMatch = (user.phoneNumber || '').toLowerCase().includes(searchTerm.toLowerCase());
+        const dateOfBirthMatch = user.dateOfBirth
+          ? new Date(user.dateOfBirth.seconds * 1000).toLocaleDateString().includes(searchTerm)
+          : false;
+
+        return profileNameMatch || emailMatch || phoneNumberMatch || dateOfBirthMatch;
+      });
+
+      setFilteredUsers(filtered);
+    };
+
+    filterUsers();
+  }, [searchTerm, users]);
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
   };
-
-  // Update user data
-  const handleUpdateUser = async (id) => {
-    const updatedData = prompt('Enter new data in JSON format (e.g., {"email": "newemail@example.com", "points": 100}):');
-    if (updatedData) {
-      try {
-        const itemRef = doc(db, 'users', id);
-        await updateDoc(itemRef, JSON.parse(updatedData));
-        fetchData(); // Re-fetch data after updating
-      } catch (error) {
-        console.error("Error updating user:", error);
-      }
-    }
-  };
-
-  // Delete a user
-  const handleDeleteUser = async (id) => {
-    const confirmDelete = window.confirm('Are you sure you want to delete this user?');
-    if (confirmDelete) {
-      try {
-        const itemRef = doc(db, 'users', id);
-        await deleteDoc(itemRef);
-        fetchData(); // Re-fetch data after deleting
-      } catch (error) {
-        console.error("Error deleting user:", error);
-      }
-    }
-  };
-
-  // Render any value, converting objects to strings where necessary
-  const renderValue = (value) => {
-    if (value === undefined || value === null) return 'N/A';
-    if (typeof value === 'object') return JSON.stringify(value);
-    return value.toString();
-  };
-
-  // Loading state
-  if (loading) {
-    return <p className="text-center text-gray-800">Loading...</p>;
-  }
-
-  if (!authenticated) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-200 p-6">
-        <h2 className="mb-4 text-2xl text-gray-800">Admin Login</h2>
-        <input
-          type="password"
-          placeholder="Enter admin password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="border border-gray-300 rounded p-2 mb-4 w-full max-w-xs text-black"
-        />
-        <button onClick={handleLogin} className="bg-blue-600 text-white p-2 rounded w-full max-w-xs">
-          Login
-        </button>
-      </div>
-    );
-  }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto bg-gray-100 rounded-lg shadow-lg">
-      <h1 className="text-3xl font-bold mb-6 text-gray-900">Admin Dashboard</h1>
-
-      <section className="mb-8 p-4 bg-white rounded-lg shadow">
-        <h2 className="text-2xl mb-4 text-gray-800">User List</h2>
-
-        <div className="mb-4">
-          <input
-            type="text"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            placeholder="Search by name or email"
-            className="border border-gray-300 rounded p-2 w-full"
-          />
-        </div>
-
-        {data.length > 0 ? (
-          data.filter(user =>
-            user.profileName.toLowerCase().includes(filter.toLowerCase()) ||
-            user.email.toLowerCase().includes(filter.toLowerCase())
-          ).map((item) => (
-            <div key={item.id} className="mb-4 border border-gray-300 rounded p-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-black">{item.profileName} ({item.email})</h3>
-                <button
-                  onClick={() => setExpandedUser(expandedUser === item.id ? null : item.id)}
-                  className="bg-gray-300 text-gray-800 p-1 rounded">
-                  {expandedUser === item.id ? 'Hide Details' : 'Show Details'}
-                </button>
-              </div>
-              {expandedUser === item.id && (
-                <div className="mt-2">
-                  <p className="text-black"><strong>Phone Number:</strong> {renderValue(item.phoneNumber)}</p>
-                  <p className="text-black"><strong>Date of Birth:</strong> {renderValue(item.dateOfBirth?.toDate())}</p>
-                  <p className="text-black"><strong>Referral Code:</strong> {renderValue(item.referralCode)}</p>
-                  <p className="text-black"><strong>Referral Count:</strong> {renderValue(item.referralsCount)}</p>
-                  <p className="text-black"><strong>Points:</strong> {renderValue(item.points)}</p>
-
-                  {/* Points Log */}
-                  <h4 className="mt-4 text-black font-bold">Points Log:</h4>
-                  <div className="bg-gray-200 p-4 rounded-lg shadow">
-                    {item.pointsLog && item.pointsLog.length > 0 ? (
-                      item.pointsLog.map((log, index) => (
-                        <div key={index} className="mb-2 p-2 border-b border-gray-300 last:border-b-0">
-                          <p className="text-black">
-                            <strong>Log {index + 1}:</strong> {renderValue(log)}
-                          </p>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-black">No points log available.</p>
-                    )}
-                  </div>
-
-                  {/* Profile Data */}
-                  <h4 className="mt-4 text-black font-bold">Profile Data:</h4>
-                  <div className="bg-gray-200 p-4 rounded-lg shadow">
-                    {item.profileData && item.profileData.length > 0 ? (
-                      item.profileData.map((profile, index) => (
-                        <div key={index} className="mb-2 p-2 border-b border-gray-300 last:border-b-0">
-                          <p className="text-black"><strong>Profile {index + 1}:</strong> {renderValue(profile)}</p>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-black">No profile data available.</p>
-                    )}
-                  </div>
-
-                  {/* Profile Logs */}
-                  <h4 className="mt-4 text-black font-bold">Profile Logs:</h4>
-                  <div className="bg-gray-200 p-4 rounded-lg shadow">
-                    {item.profileLogs && item.profileLogs.length > 0 ? (
-                      item.profileLogs.map((log, index) => (
-                        <div key={index} className="mb-2 p-2 border-b border-gray-300 last:border-b-0">
-                          <p className="text-black">
-                            <strong>Action {index + 1}:</strong> {renderValue(log)}
-                          </p>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-black">No profile logs available.</p>
-                    )}
-                  </div>
-
-                  <button onClick={() => handleUpdateUser(item.id)} className="bg-blue-600 text-white p-1 rounded mt-2 mr-2">
-                    Update
-                  </button>
-                  <button onClick={() => handleDeleteUser(item.id)} className="bg-red-600 text-white p-1 rounded mt-2">
-                    Delete
-                  </button>
-                </div>
-              )}
-            </div>
-          ))
-        ) : (
-          <p>No users found.</p>
-        )}
-      </section>
+    <div className="p-4 sm:p-8 max-w-3xl mx-auto bg-white shadow-lg rounded-lg">
+      <h1 className="text-2xl sm:text-4xl font-bold mb-6 text-blue-700 text-center">Admin Dashboard</h1>
+      <div className="mb-6">
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={handleSearchChange}
+          placeholder="Search by name, email, phone, or date of birth..."
+          className="w-full p-3 border border-gray-300 rounded-lg text-black focus:border-blue-500 focus:outline-none"
+        />
+      </div>
+      <table className="min-w-full bg-white border border-gray-200">
+        <thead>
+          <tr>
+            <th className="border border-gray-300 p-2 text-black">#</th>
+            <th className="border border-gray-300 p-2 text-black">Profile Name</th>
+            <th className="border border-gray-300 p-2 text-black">Email</th>
+            <th className="border border-gray-300 p-2 text-black">Phone Number</th>
+            <th className="border border-gray-300 p-2 text-black">Date of Birth</th>
+            <th className="border border-gray-300 p-2 text-black">Points</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredUsers.length > 0 ? (
+            filteredUsers.map((user, index) => (
+              <tr key={user.id}>
+                <td className="border border-gray-300 p-2 text-black text-center">{index + 1}</td>
+                <td className="border border-gray-300 p-2 text-black">{user.profileName || 'N/A'}</td>
+                <td className="border border-gray-300 p-2 text-black">{user.email || 'N/A'}</td>
+                <td className="border border-gray-300 p-2 text-black">{user.phoneNumber || 'N/A'}</td>
+                <td className="border border-gray-300 p-2 text-black">
+                  {user.dateOfBirth ? new Date(user.dateOfBirth.seconds * 1000).toLocaleDateString() : 'N/A'}
+                </td>
+                <td className="border border-gray-300 p-2 text-black">{user.points || 0}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="6" className="border border-gray-300 p-2 text-black text-center">No users found</td>
+            </tr>
+          )}
+        </tbody>
+      </table>
     </div>
   );
 };
 
-export default AdminDashboard;
+export default Admin;
