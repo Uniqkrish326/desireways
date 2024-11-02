@@ -14,7 +14,6 @@ const Profile = () => {
   });
   const [referralCode, setReferralCode] = useState('');
   const [referralLink, setReferralLink] = useState('');
-  const [lastUpdated, setLastUpdated] = useState(0);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -54,51 +53,50 @@ const Profile = () => {
 
   const handleSaveProfile = async () => {
     try {
-      const now = Date.now();
       const user = auth.currentUser;
-
-      if (now - lastUpdated < 300000) {
-        alert('You can only update your profile every 5 minutes.');
-        return;
-      }
-
       const userRef = doc(db, 'users', user.uid);
       const userDoc = await getDoc(userRef);
 
-      const currentPoints = userDoc.exists() && typeof userDoc.data().points === 'number'
-        ? userDoc.data().points
-        : 0;
+      // Check if the profile is being filled for the first time
       const isProfileFilled = userDoc.exists() ? userDoc.data().profileFilled : false;
 
-      if (!profileDetails.dateOfBirth) {
-        alert("Date of Birth is required.");
-        return;
-      }
+      // Prepare profileData object
+      const profileData = {
+        profileName: profileDetails.profileName,
+        dateOfBirth: Timestamp.fromDate(new Date(profileDetails.dateOfBirth)),
+        phoneNumber: profileDetails.phoneNumber,
+        timestamp: new Date(),
+        profileFilled: true,
+      };
 
-      if (!isProfileFilled) {
-        await updateDoc(userRef, {
-          ...profileDetails,
-          dateOfBirth: Timestamp.fromDate(new Date(profileDetails.dateOfBirth)),
-          points: currentPoints + 50,
-          profileFilled: true,
-          referralCode: generateReferralCode(user.uid),
-          referralsCount: 0,
-        });
-        alert("50 points have been awarded for filling your profile!");
-      } else {
-        await updateDoc(userRef, {
-          ...profileDetails,
-          dateOfBirth: Timestamp.fromDate(new Date(profileDetails.dateOfBirth)),
-        });
-      }
+      // Update the user document
+      await updateDoc(userRef, {
+        ...profileDetails,
+        dateOfBirth: Timestamp.fromDate(new Date(profileDetails.dateOfBirth)),
+        profileFilled: true,
+        points: isProfileFilled ? userDoc.data().points : userDoc.data().points + 50, // Award points for filling profile
+        pointsLog: arrayUnion({
+          description: isProfileFilled ? "Profile updated" : "Profile filled for the first time",
+          points: isProfileFilled ? 0 : 50,
+          timestamp: new Date(),
+          type: isProfileFilled ? "profile_update" : "new_signup",
+        }),
+        profileData: arrayUnion(profileData),
+        profileLogs: arrayUnion({
+          action: isProfileFilled ? "Profile updated" : "Profile filled for the first time",
+          pointsAwarded: isProfileFilled ? 0 : 50,
+          previousData: {
+            timestamp: new Date(),
+          }
+        }),
+      });
 
-      setLastUpdated(now);
       setEditing(false);
       setUserData((prev) => ({
         ...prev,
         ...profileDetails,
         dateOfBirth: Timestamp.fromDate(new Date(profileDetails.dateOfBirth)),
-        points: isProfileFilled ? currentPoints : currentPoints + 50,
+        points: isProfileFilled ? userDoc.data().points : userDoc.data().points + 50,
       }));
     } catch (error) {
       console.error("Error saving profile:", error);
