@@ -4,16 +4,15 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { doc, setDoc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db, auth } from '../firebase';
-import products from '../data/products.json';
 import ProductInfo from '../components/ProductInfo';
 import UserReviews from '../components/UserReviews';
 import '../styles/ProductDetail.css';
 
 const ProductDetail = () => {
   const { productId } = useParams();
-  const product = products.find((p) => p.id === parseInt(productId));
   const navigate = useNavigate();
 
+  const [product, setProduct] = useState(null);
   const [userRating, setUserRating] = useState(null);
   const [reviewText, setReviewText] = useState('');
   const [reviews, setReviews] = useState([]);
@@ -22,6 +21,24 @@ const ProductDetail = () => {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [editingReviewId, setEditingReviewId] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const productRef = doc(db, 'products', productId); // 'products' is your Firestore collection name
+        const productDoc = await getDoc(productRef);
+        if (productDoc.exists()) {
+          setProduct({ id: productDoc.id, ...productDoc.data() });
+        } else {
+          console.error('Product not found in Firebase.');
+        }
+      } catch (error) {
+        console.error('Error fetching product:', error);
+      }
+    };
+
+    fetchProduct();
+  }, [productId]);
 
   useEffect(() => {
     const fetchUserDetails = async () => {

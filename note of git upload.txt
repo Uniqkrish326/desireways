@@ -7,6 +7,9 @@
     "deploy": "gh-pages -d build",
 
 
+datbase pass :kk3267890
+
+
 Firestore
   ├── users (Collection)
   │     ├── user_id_1 (Document)
@@ -50,3 +53,26 @@ Firestore
     }
   ]
 }
+
+
+admin uid                   xwoRLKCpqdRdqG6yfkg17DDIQtR2
+
+const newProduct = {
+  category: 'Electronics',
+  name: 'Wireless Earbuds',
+  title: 'High-Quality Wireless Earbuds',
+  description: 'Experience high-fidelity sound with our wireless earbuds.',
+  price: 49.99,
+  actual_price:60.00,
+  stockCount: 100,
+  imageUrls: ['https://example.com/image1.jpg', 'https://example.com/image2.jpg'],
+  videoUrls: ['https://example.com/video1.mp4'],
+  gifUrls: ['https://example.com/gif1.gif'],
+  colors: [color codes, ],
+  sizes: ['Small', 'Medium', 'Large'],
+  additionalAttributes: {
+    warranty: '1 year',
+    brand: 'BrandName'
+    url:'buy link '
+  }
+};

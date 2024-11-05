@@ -8,6 +8,7 @@ import Newsletter from '../components/NewsletterSignup';
 import Footer from '../components/Footer';
 
 const Home = () => {
+  // eslint-disable-next-line
   const [selectedCategory, setSelectedCategory] = useState('');
 
   return (

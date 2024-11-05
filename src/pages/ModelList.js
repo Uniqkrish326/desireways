@@ -1,28 +1,49 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import products from '../data/products.json'; // Import your products data
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebase'; // Ensure you import your Firestore instance
 
 const ModelList = () => {
-  const { category } = useParams(); // Get the category from URL
+  const { category } = useParams();
   const navigate = useNavigate();
-
-  // Extract unique models for the selected category
-  const models = [...new Set(products
-    .filter(p => p.category.toLowerCase() === category.toLowerCase())
-    .map(p => p.name))];
+  const [models, setModels] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [productsData, setProductsData] = useState([]);
 
   const handleSelectModel = (model) => {
-    navigate(`/products/${category}/${model}`); // Navigate to the model's product list
+    navigate(`/products/${category}/${model}`);
   };
 
   useEffect(() => {
-    // Scroll to the top of the page when the component mounts
+    const fetchProducts = async () => {
+      try {
+        const productsCollection = collection(db, 'products');
+        const productSnapshot = await getDocs(productsCollection);
+        const data = productSnapshot.docs.map(doc => doc.data());
+        setProductsData(data);
+
+        const uniqueModels = [...new Set(data
+          .filter(p => p.category.toLowerCase() === category.toLowerCase())
+          .map(p => p.name))];
+
+        setModels(uniqueModels);
+      } catch (error) {
+        console.error("Error fetching products: ", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
     window.scrollTo(0, 0);
-  }, []); // Empty dependency array ensures this runs once on mount
+  }, [category]);
+
+  if (loading) {
+    return <div className="text-center text-lg">Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center py-10 px-4">
-      {/* Back Link */}
       <button 
         onClick={() => navigate(-1)} 
         className="text-blue-500 mb-4 text-lg hover:underline"
@@ -36,17 +57,22 @@ const ModelList = () => {
           <p className="text-center text-lg">No models available for this category.</p>
         ) : (
           models.map((model, index) => {
-            // Find the product with the current model name to display the first image
-            const product = products.find(p => p.name === model);
-            const imageUrl = product && product.images[0]; // Get the first image for the model
+            const product = productsData.find(p => p.name === model);
+            const imageUrl = product && product.imageUrls && product.imageUrls[0];
 
             return (
-              <div key={index} className="bg-gray-800 p-4 rounded-lg shadow-lg transition-transform duration-200 hover:scale-105 flex flex-col">
-                <img 
-                  src={imageUrl} 
-                  alt={model} 
-                  className="w-full h-32 object-cover rounded-md mb-2" // Adjusted height for images
-                />
+              <div key={index} className="bg-gray-800 p-3 rounded-lg shadow-lg hover:scale-105 transition-transform duration-200 flex flex-col">
+                {imageUrl ? (
+                  <img 
+                    src={imageUrl} 
+                    alt={model} 
+                    className="w-full h-32 object-cover rounded-md mb-2"
+                  />
+                ) : (
+                  <div className="h-32 bg-gray-700 rounded-md mb-2 flex items-center justify-center">
+                    <span>No Image Available</span>
+                  </div>
+                )}
                 <h3 className="text-lg font-semibold mb-2 truncate">{model}</h3>
                 <button
                   onClick={() => handleSelectModel(model)}

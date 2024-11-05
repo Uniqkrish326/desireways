@@ -1,93 +1,91 @@
-import React, { useState, useEffect } from 'react';
+// src/pages/Admin.js
+import React, { useEffect, useState } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
-import { useNavigate } from 'react-router-dom';
+import UserTable from '../admin_component/User_Table';
+import AddProduct from '../admin_component/AddProduct'; // Import the AddProduct component
+import ProductView from '../admin_component/ProductView'; // Import the ProductView component
 
 const Admin = () => {
   const [users, setUsers] = useState([]);
-  const [filteredUsers, setFilteredUsers] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const navigate = useNavigate();
+  const [filter, setFilter] = useState('');
+  const [activeSection, setActiveSection] = useState('users'); // State to manage active section
 
   useEffect(() => {
     const fetchUsers = async () => {
-      const usersCollection = collection(db, 'users');
-      const usersSnapshot = await getDocs(usersCollection);
-      const usersList = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setUsers(usersList);
-      setFilteredUsers(usersList); // Initialize filteredUsers with all users
+      try {
+        const userCollection = collection(db, 'users');
+        const userSnapshot = await getDocs(userCollection);
+        const userList = userSnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
+        setUsers(userList);
+      } catch (error) {
+        console.error("Error fetching users: ", error); // Basic error handling
+      }
     };
 
     fetchUsers();
   }, []);
 
-  useEffect(() => {
-    const filterUsers = () => {
-      const filtered = users.filter(user => {
-        const profileNameMatch = (user.profileName || '').toLowerCase().includes(searchTerm.toLowerCase());
-        const emailMatch = (user.email || '').toLowerCase().includes(searchTerm.toLowerCase());
-        const phoneNumberMatch = (user.phoneNumber || '').toLowerCase().includes(searchTerm.toLowerCase());
-        const dateOfBirthMatch = user.dateOfBirth
-          ? new Date(user.dateOfBirth.seconds * 1000).toLocaleDateString().includes(searchTerm)
-          : false;
-
-        return profileNameMatch || emailMatch || phoneNumberMatch || dateOfBirthMatch;
-      });
-
-      setFilteredUsers(filtered);
-    };
-
-    filterUsers();
-  }, [searchTerm, users]);
-
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
+  const renderContent = () => {
+    switch (activeSection) {
+      case 'users':
+        return (
+          <>
+            <input
+              type="text"
+              placeholder="Search users..."
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              className="w-full p-3 mb-4 border border-gray-300 rounded-lg text-black focus:border-blue-500 focus:outline-none"
+            />
+            <UserTable users={users} filter={filter} />
+          </>
+        );
+      case 'addProduct':
+        return <AddProduct />; // Render AddProduct component
+      case 'viewProducts':
+        return <ProductView />; // Render ProductView component
+      default:
+        return null;
+    }
   };
 
   return (
-    <div className="p-4 sm:p-8 max-w-3xl mx-auto bg-white shadow-lg rounded-lg">
-      <h1 className="text-2xl sm:text-4xl font-bold mb-6 text-blue-700 text-center">Admin Dashboard</h1>
-      <div className="mb-6">
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={handleSearchChange}
-          placeholder="Search by name, email, phone, or date of birth..."
-          className="w-full p-3 border border-gray-300 rounded-lg text-black focus:border-blue-500 focus:outline-none"
-        />
+    <div className="flex">
+      <div className="bg-gray-200 h-full p-4 w-1/4"> {/* Set width for sidebar */}
+        <h2 className="text-lg font-bold text-black mb-4">Admin Menu</h2>
+        <ul className="space-y-2">
+          <li>
+            <button
+              onClick={() => setActiveSection('users')}
+              className={`text-black hover:underline focus:outline-none ${activeSection === 'users' ? 'font-bold' : ''}`}
+            >
+              User Management
+            </button>
+          </li>
+          <li>
+            <button
+              onClick={() => setActiveSection('addProduct')}
+              className={`text-black hover:underline focus:outline-none ${activeSection === 'addProduct' ? 'font-bold' : ''}`}
+            >
+              Add Product
+            </button>
+          </li>
+          <li>
+            <button
+              onClick={() => setActiveSection('viewProducts')}
+              className={`text-black hover:underline focus:outline-none ${activeSection === 'viewProducts' ? 'font-bold' : ''}`}
+            >
+              View Products
+            </button>
+          </li>
+          {/* Add more links as needed */}
+        </ul>
       </div>
-      <table className="min-w-full bg-white border border-gray-200">
-        <thead>
-          <tr>
-            <th className="border border-gray-300 p-2 text-black">#</th>
-            <th className="border border-gray-300 p-2 text-black">Profile Name</th>
-            <th className="border border-gray-300 p-2 text-black">Email</th>
-            <th className="border border-gray-300 p-2 text-black">Phone Number</th>
-            <th className="border border-gray-300 p-2 text-black">Date of Birth</th>
-            <th className="border border-gray-300 p-2 text-black">Points</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredUsers.length > 0 ? (
-            filteredUsers.map((user, index) => (
-              <tr key={user.id}>
-                <td className="border border-gray-300 p-2 text-black text-center">{index + 1}</td>
-                <td className="border border-gray-300 p-2 text-black">{user.profileName || 'N/A'}</td>
-                <td className="border border-gray-300 p-2 text-black">{user.email || 'N/A'}</td>
-                <td className="border border-gray-300 p-2 text-black">{user.phoneNumber || 'N/A'}</td>
-                <td className="border border-gray-300 p-2 text-black">
-                  {user.dateOfBirth ? new Date(user.dateOfBirth.seconds * 1000).toLocaleDateString() : 'N/A'}
-                </td>
-                <td className="border border-gray-300 p-2 text-black">{user.points || 0}</td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="6" className="border border-gray-300 p-2 text-black text-center">No users found</td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+      <div className="p-8 max-w-3xl mx-auto bg-white shadow-lg rounded-lg w-3/4"> {/* Set width for main content */}
+        <h1 className="text-4xl font-bold mb-6 text-black text-center">Admin Dashboard</h1>
+        {renderContent()} {/* Conditional rendering based on active section */}
+      </div>
     </div>
   );
 };

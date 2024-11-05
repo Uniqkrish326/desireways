@@ -1,11 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import products from '../data/products.json'; // Import your products data
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebase'; // Ensure this is the correct path to your Firebase configuration
 
 const FilteredProductList = () => {
   const { category, model } = useParams(); // Get category and model from URL
   const navigate = useNavigate();
   const [filter, setFilter] = useState(''); // Manage filter
+  const [products, setProducts] = useState([]); // State for products
+
+  // Fetch products from Firestore when the component mounts
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const productsCollection = collection(db, 'products'); // Reference to the products collection in Firestore
+        const productSnapshot = await getDocs(productsCollection);
+        const data = productSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })); // Extract product data
+        
+        console.log('Fetched products:', data); // Debug: Log all fetched products
+        setProducts(data);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   // Filter products based on selected category and model
   const filteredProducts = products.filter(product => 
@@ -14,13 +37,10 @@ const FilteredProductList = () => {
     (!filter || product.description.toLowerCase().includes(filter.toLowerCase()))
   );
 
+  console.log('Filtered products:', filteredProducts); // Debug: Log filtered products
+
   const handleViewProduct = (productId) => {
     navigate(`/products/${category}/${model}/${productId}`); // Navigate to product detail page
-  };
-
-  // Function to truncate description
-  const truncateDescription = (description, maxLength = 100) => {
-    return description.length > maxLength ? description.slice(0, maxLength) + '...' : description;
   };
 
   return (
@@ -41,7 +61,7 @@ const FilteredProductList = () => {
         placeholder="Filter by description..."
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
-        className="mb-6 p-2 rounded-lg text-black" // Added text-black to make the input text black
+        className="mb-6 p-2 rounded-lg text-black"
       />
 
       {/* Product List */}
@@ -58,19 +78,26 @@ const FilteredProductList = () => {
                 className="bg-gray-800 p-4 rounded-lg shadow-lg transition-transform duration-200 hover:scale-105 cursor-pointer"
                 onClick={() => handleViewProduct(product.id)} // Make entire card clickable
               >
-                <div className="h-40 overflow-hidden"> {/* Container to maintain image aspect ratio */}
-                  <img 
-                    src={product.images[0]} 
-                    alt={product.title} 
-                    className="w-full h-full object-cover rounded-md" // Ensures the image covers the container completely
-                  />
+                <div className="h-40 overflow-hidden">
+                  {product.imageUrls && Array.isArray(product.imageUrls) && product.imageUrls.length > 0 ? (
+                    <img 
+                      src={product.imageUrls[0]} 
+                      alt={product.name} // Use `product.name` here
+                      className="w-full h-full object-cover rounded-md"
+                    />
+                  ) : (
+                    <div className="h-full w-full bg-gray-700 flex items-center justify-center rounded-md">
+                      <span>No Image Available</span>
+                    </div>
+                  )}
                 </div>
-                <h3 className="text-lg font-semibold mb-1 truncate">{product.title}</h3>
-                <p className="text-xl font-bold mb-1">₹{price.toLocaleString()}</p> {/* Display current price */}
+
+                <h3 className="text-lg font-semibold mb-1 truncate">{product.title}</h3> {/* Use `product.name` */}
+                <p className="text-xl font-bold mb-1">₹{price.toLocaleString()}</p>
                 {actualPrice > 0 && (
-                  <p className="text-sm line-through text-gray-400 mb-1">₹{actualPrice.toLocaleString()}</p> // Display actual price if applicable
+                  <p className="text-sm line-through text-gray-400 mb-1">₹{actualPrice.toLocaleString()}</p>
                 )}
-                <p className="text-sm text-gray-300">Stock: {product.stockCount || 0} units</p> {/* Display stock count */}
+                <p className="text-sm text-gray-300">Stock: {product.stockCount || 0} units</p>
               </div>
             );
           })
