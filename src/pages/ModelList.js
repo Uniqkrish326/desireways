@@ -61,7 +61,7 @@ const ModelList = () => {
             const imageUrl = product && product.imageUrls && product.imageUrls[0];
 
             return (
-              <div key={index} className="bg-gray-800 p-3 rounded-lg shadow-lg hover:scale-105 transition-transform duration-200 flex flex-col">
+              <div key={index} onClick={() => handleSelectModel(model)} className="bg-gray-800 p-3 rounded-lg shadow-lg hover:scale-105 transition-transform duration-200 flex flex-col">
                 {imageUrl ? (
                   <img 
                     src={imageUrl} 
