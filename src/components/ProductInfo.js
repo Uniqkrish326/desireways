@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+// eslint-disable-next-line
 import { Link } from 'react-router-dom';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
@@ -10,6 +11,7 @@ const ProductInfo = ({ product, overallRating, isWishlisted, handleWishlistToggl
   const images = product.imageUrls || [];
   const videos = product.videos || [];
   const colors = product.colors || [];
+  // eslint-disable-next-line
   const sizes = product.sizes || [];
   const maxDescriptionLength = 500;
 
@@ -113,7 +115,7 @@ const ProductInfo = ({ product, overallRating, isWishlisted, handleWishlistToggl
           {renderAttribute("Select Color", colors)}
 
           {/* Size Selection */}
-          {renderAttribute("Select Size", sizes)}
+          
 
           {/* Description */}
           <div className="mt-6">
@@ -132,12 +134,14 @@ const ProductInfo = ({ product, overallRating, isWishlisted, handleWishlistToggl
 
           {/* Buttons */}
           <div className="mt-6 flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4">
-            <Link
-              to={product.link}
-              className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-2 px-4 rounded transition duration-300 hover:shadow-lg"
-            >
-              Buy Now
-            </Link>
+          <a
+          href={product.additionalAttributes.url} // Access the URL correctly from additionalAttributes
+          target="_blank" // Opens the link in a new tab
+          rel="noopener noreferrer" // Security best practice
+          className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-2 px-4 rounded transition duration-300 hover:shadow-lg"
+        >
+          Buy Now
+        </a>
             <button
               onClick={handleWishlistToggle}
               className={`py-2 px-4 rounded transition duration-300 ${isWishlisted ? 'bg-red-500' : 'bg-green-500'}`}
