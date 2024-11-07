@@ -6,7 +6,7 @@ import "slick-carousel/slick/slick-theme.css";
 
 const Banner = () => {
     const images = [
-        'https://t4.ftcdn.net/jpg/02/49/50/15/360_F_249501541_XmWdfAfUbWAvGxBwAM0ba2aYT36ntlpH.jpg',
+        'https://i.postimg.cc/mkw6RKmw/Gemini-Generated-Image-gok4hcgok4hcgok4.jpg',
         'https://www.shutterstock.com/image-vector/banner-big-sale-blue-podium-260nw-2493210727.jpg',
         'https://png.pngtree.com/thumb_back/fh260/background/20190813/pngtree-beautiful-diwali-background-image_287752.jpg'
     ];

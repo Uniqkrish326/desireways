@@ -1,8 +1,6 @@
-// src/pages/ProductDetail.js
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { doc, setDoc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { doc, setDoc, getDoc, collection, addDoc, getDocs, deleteDoc, updateDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import ProductInfo from '../components/ProductInfo';
 import UserReviews from '../components/UserReviews';
@@ -18,14 +16,14 @@ const ProductDetail = () => {
   const [reviews, setReviews] = useState([]);
   const [userId, setUserId] = useState(null);
   const [userName, setUserName] = useState('Anonymous');
-  const [isWishlisted, setIsWishlisted] = useState(false);
-  const [editingReviewId, setEditingReviewId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isWishlisted, setIsWishlisted] = useState(false); // Wishlist state
 
+  // Fetch product details
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const productRef = doc(db, 'products', productId); // 'products' is your Firestore collection name
+        const productRef = doc(db, 'products', productId);
         const productDoc = await getDoc(productRef);
         if (productDoc.exists()) {
           setProduct({ id: productDoc.id, ...productDoc.data() });
@@ -40,58 +38,62 @@ const ProductDetail = () => {
     fetchProduct();
   }, [productId]);
 
+  // Fetch user details, check if the product is wishlisted, and handle reviews
   useEffect(() => {
-    const fetchUserDetails = async () => {
+    const fetchUserDetailsAndWishlist = async () => {
       const user = auth.currentUser;
       if (user) {
         setUserId(user.uid);
         const userRef = doc(db, 'users', user.uid);
         const userDoc = await getDoc(userRef);
+
         if (userDoc.exists()) {
           const userData = userDoc.data();
           setUserName(userData.profileName || 'Anonymous');
-          if (userData.wishlist && userData.wishlist.some(item => item.productId === productId)) {
-            setIsWishlisted(true);
-          }
+          
+          // Check if the product is in the wishlist
+          const wishlist = userData?.wishlist || [];
+          const isProductWishlisted = wishlist.some(item => item.productId === productId);
+          setIsWishlisted(isProductWishlisted);
         } else {
-          await setDoc(userRef, { reviews: [], wishlist: [] });
+          // If user doesn't exist, create a new document
+          await setDoc(userRef, { profileName: 'Anonymous' });
         }
       } else {
         navigate('/login');
       }
     };
-    fetchUserDetails();
+    fetchUserDetailsAndWishlist();
   }, [navigate, productId]);
 
+  // Fetch reviews for the product
   const fetchReviews = async () => {
-    if (!userId) return;
     setLoading(true);
-    const reviewsRef = doc(db, 'users', userId);
-    const userDoc = await getDoc(reviewsRef);
-    const fetchedReviews = userDoc.exists() ? userDoc.data().reviews?.filter(review => review.productId === productId) || [] : [];
+    const reviewsRef = collection(db, 'products', productId, 'reviews');
+    const reviewSnapshot = await getDocs(reviewsRef);
+    const fetchedReviews = reviewSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     setReviews(fetchedReviews);
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchReviews();
-  }, [userId, productId]);
+    if (productId) fetchReviews();
+  }, [productId]);
 
+  // Handle review submission
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
     if (reviewText.trim() && userRating !== null) {
       const reviewData = {
-        productId,
         text: reviewText,
         rating: userRating,
         userName,
+        userId,
         timestamp: new Date(),
       };
 
-      const userRef = doc(db, 'users', userId);
-      await updateDoc(userRef, {
-        reviews: arrayUnion(reviewData),
-      });
+      const reviewsRef = collection(db, 'products', productId, 'reviews');
+      await addDoc(reviewsRef, reviewData);
 
       await fetchReviews();
       setReviewText('');
@@ -99,76 +101,56 @@ const ProductDetail = () => {
     }
   };
 
-  const handleReviewEdit = (review) => {
-    setEditingReviewId(review.timestamp); // Use timestamp for unique identification
-    setReviewText(review.text);
-    setUserRating(review.rating);
-  };
-
-  const handleReviewUpdate = async (e) => {
-    e.preventDefault();
-    if (reviewText.trim() && userRating !== null && editingReviewId) {
-      const updatedReviewData = {
-        productId,
-        text: reviewText,
-        rating: userRating,
-        userName,
-        timestamp: editingReviewId,
-      };
-
-      const userRef = doc(db, 'users', userId);
-      await updateDoc(userRef, {
-        reviews: arrayRemove(reviews.find(r => r.timestamp === editingReviewId)), // Remove old review
-      });
-      await updateDoc(userRef, {
-        reviews: arrayUnion(updatedReviewData), // Add updated review
-      });
-
-      await fetchReviews();
-      setReviewText('');
-      setUserRating(null);
-      setEditingReviewId(null);
-    }
-  };
-
-  const handleReviewDelete = async (review) => {
-    const userRef = doc(db, 'users', userId);
-    await updateDoc(userRef, {
-      reviews: arrayRemove(review),
-    });
+  // Handle review deletion
+  const handleReviewDelete = async (reviewId) => {
+    const reviewRef = doc(db, 'products', productId, 'reviews', reviewId);
+    await deleteDoc(reviewRef);
     await fetchReviews();
   };
 
-  const handleWishlistToggle = async () => {
-    const userRef = doc(db, 'users', userId);
-    if (isWishlisted) {
-      await updateDoc(userRef, {
-        wishlist: arrayRemove({ productId }),
-      });
-      setIsWishlisted(false);
-    } else {
-      await updateDoc(userRef, {
-        wishlist: arrayUnion({ productId }),
-      });
-      setIsWishlisted(true);
-    }
-  };
-
+  // Calculate overall rating for the product
   const overallRating = reviews.length > 0
     ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
     : 0;
 
+  // Handle Add/Remove from Wishlist
+  const handleWishlistToggle = async () => {
+    const userRef = doc(db, 'users', userId);
+    const userDoc = await getDoc(userRef);
+    const userData = userDoc.data();
+
+    const wishlist = userData?.wishlist || [];
+    const productExists = wishlist.some(item => item.productId === productId);
+
+    if (productExists) {
+      // Remove from wishlist
+      const updatedWishlist = wishlist.filter(item => item.productId !== productId);
+      await updateDoc(userRef, { wishlist: updatedWishlist });
+      setIsWishlisted(false);
+    } else {
+      // Add to wishlist
+      const updatedWishlist = [...wishlist, { productId }];
+      await updateDoc(userRef, { wishlist: updatedWishlist });
+      setIsWishlisted(true);
+    }
+  };
+
   return (
     <div className="container mx-auto p-4">
       <button
-        onClick={() => navigate(-1)} // Go back to the previous page
-        className="mb-4 text-blue-500 hover:text-blue-700 ml-40 mt-2" // Add left margin to position it slightly to the right
+        onClick={() => navigate(-1)}
+        className="mb-4 text-blue-500 hover:text-blue-700 ml-40 mt-2"
       >
         &lt; Back
       </button>
       {product ? (
         <>
-          <ProductInfo product={product} overallRating={overallRating} isWishlisted={isWishlisted} handleWishlistToggle={handleWishlistToggle} />
+          <ProductInfo
+            product={product}
+            overallRating={overallRating}
+            isWishlisted={isWishlisted}
+            handleWishlistToggle={handleWishlistToggle} // Pass the wishlist toggle handler
+          />
           <UserReviews
             reviews={reviews}
             loading={loading}
@@ -177,9 +159,6 @@ const ProductDetail = () => {
             reviewText={reviewText}
             setReviewText={setReviewText}
             handleReviewSubmit={handleReviewSubmit}
-            editingReviewId={editingReviewId}
-            handleReviewUpdate={handleReviewUpdate}
-            handleReviewEdit={handleReviewEdit}
             handleReviewDelete={handleReviewDelete}
           />
         </>
